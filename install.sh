@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# claude-harness installer
+# Protos Harness installer
 # Usage: bash install.sh
-#        curl -fsSL https://raw.githubusercontent.com/lesaathvik/claude-harness/main/install.sh | bash
+#        curl -fsSL https://raw.githubusercontent.com/lesaathvik24/protos-harness/main/install.sh | bash
 set -euo pipefail
 
 CLAUDE_DIR="${CLAUDE_DIR:-$HOME/.claude}"
