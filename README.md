@@ -27,6 +27,36 @@ curl -fsSL https://raw.githubusercontent.com/lesaathvik24/protos-harness/main/in
 
 Restart `claude` after install. The installer is non-destructive — it merges into your existing `~/.claude/settings.json`, preserving your theme, effortLevel, and any other settings.
 
+### Verify installation
+
+```bash
+# 1. Hooks are present and executable
+ls -la ~/.claude/hooks/
+# → 7 .sh files, all rwxr-xr-x
+
+# 2. Hooks actually block — trigger each manually:
+echo '{"content": "key = \"sk-abc123abc123abc123abc123abc\""}' | bash ~/.claude/hooks/scan-secrets.sh
+# → BLOCKED: Secret pattern detected — OpenAI/Anthropic key (sk-)
+
+echo '{"command": "rm -rf /data"}' | bash ~/.claude/hooks/dangerous-command-guard.sh
+# → BLOCKED: Dangerous command detected: rm -rf /
+
+echo '{"command": "git commit -m \"wip\""}' | bash ~/.claude/hooks/commit-message-guard.sh
+# → BLOCKED: Commit message must use Conventional Commits prefix.
+
+# 3. Agents are present
+ls ~/.claude/agents/
+# → builder.md  tester.md
+
+# 4. Skills are present
+ls ~/.claude/skills/ | wc -l
+# → 23
+
+# 5. Settings are wired
+cat ~/.claude/settings.json | python3 -c "import sys,json; d=json.load(sys.stdin); print(list(d.get('hooks',{}).keys()))"
+# → ['PreToolUse', 'PostToolUse', 'SessionStart']
+```
+
 ---
 
 ## Demo
