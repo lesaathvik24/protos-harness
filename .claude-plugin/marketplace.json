@@ -1,0 +1,16 @@
+{
+  "name": "claude-harness",
+  "id": "claude-harness",
+  "owner": {
+    "name": "lesaathvik",
+    "url": "https://github.com/lesaathvik"
+  },
+  "plugins": [
+    {
+      "name": "claude-harness",
+      "source": "./",
+      "version": "0.1.0",
+      "description": "Production-grade hooks, agents, and skills for Claude Code"
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "name": "claude-harness",
+  "description": "Production-grade hooks, agents, and skills for Claude Code — secret leak prevention, dangerous command guards, auto-lint, test impact, commit enforcement, and more.",
+  "version": "0.1.0",
+  "author": {
+    "name": "lesaathvik",
+    "url": "https://github.com/lesaathvik"
+  },
+  "license": "MIT",
+  "hooks": "./hooks",
+  "agents": ["./agents/builder.md", "./agents/tester.md"],
+  "skills": "./skills"
+}
