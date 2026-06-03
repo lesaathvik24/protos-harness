@@ -1,6 +1,6 @@
 ---
 name: builder
-description: Implementation agent. Use when writing, modifying, or scaffolding code across multiple files. Reads context, writes changes, runs targeted build/lint commands. Invoke with "use the builder agent to <task>". NOTE: each subagent invocation costs ~4x tokens vs inline — only delegate when the task is large enough to justify it. Disable by deleting this file.
+description: "Implementation agent for writing, modifying, or scaffolding code. Invoke with 'use the builder agent to <task>'. Each subagent costs ~4x tokens vs inline — only delegate when the task is large enough to justify it. Disable by deleting this file."
 tools: Read, Edit, Write, Bash, Glob, Grep
 ---
 

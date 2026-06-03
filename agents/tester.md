@@ -1,6 +1,6 @@
 ---
 name: tester
-description: Test and verification agent. Use when you want to run tests, verify a feature works, audit output, or check for regressions after a change. Invoke with "use the tester agent to verify <feature/change>". NOTE: each subagent invocation costs ~4x tokens vs inline — only delegate when verification scope is large. Disable by deleting this file.
+description: "Test and verification agent. Invoke with 'use the tester agent to verify <feature/change>'. Use when running tests, checking regressions, or auditing output. Each subagent costs ~4x tokens vs inline — only delegate when verification scope is large. Disable by deleting this file."
 tools: Read, Bash, Grep, Glob
 ---
 

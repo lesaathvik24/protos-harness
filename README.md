@@ -169,7 +169,7 @@ Skills are slash-command workflows loaded on demand — they cost zero tokens wh
 | `teach` | `/teach` | Explain a concept or codebase area |
 | `setup-matt-pocock-skills` | `/setup-matt-pocock-skills` | Install mattpocock skill pack |
 
-**Attribution:** skills are curated from [FleetView](https://fleetview.ai) and [mattpocock/skills](https://github.com/mattpocock). Protos Harness bundles them for one-command install; original authorship belongs to those projects.
+**Attribution:** skills are curated from [mattpocock/skills](https://github.com/mattpocock). Protos Harness bundles them for one-command install; original authorship belongs to that project.
 
 ---
 
