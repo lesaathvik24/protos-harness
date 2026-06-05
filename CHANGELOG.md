@@ -17,12 +17,13 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 ### Added
 - **`vibezombie` Phase B — cross-session learner model.** `~/.claude/.vibezombie/profile.md` tracks concepts as `## mastered` / `## shaky`; forks on mastered concepts are suppressed (logged `TRIVIAL: mastered:<concept>`), difficulty ramps as mastery grows, and the model auto-updates after each fork (a correct Hard-mode justification counts more than a Reveal-mode pick).
 - **`/vibezombie profile`** control surface — inspect/correct the learner model: `mastered <c>` / `shaky <c>` / `forget <c>` / `reset`. The user owns the model.
-- **`tests/scenarios/vibezombie/`** — 5 human-readable behavioral rubrics (PASS/FAIL anti-patterns) for fork quality, with `stock-trading-stack.md` as the canonical regression case. Run live now; automatable as transcript evals later.
+- **`tests/scenarios/vibezombie/`** — human-readable behavioral rubrics (PASS/FAIL anti-patterns) for fork quality, including `holistic-stack-reveal.md` (neutral options + multi-axis map + priority fork) and `plan-mode-stack-fork.md` (plan mode must fork the stack). Run live now; automatable as transcript evals later.
 
 ### Changed
 - **`vibezombie` forks are now technical-only.** Explicit anti-motivation-policing rule: the skill never asks *why* the user wants the product (the bug that made it ask "why do you want paper trading?"). It interrupts only for engineering decisions and exposes the technical consequence of each branch.
 - **Holistic "it-depends" reveals with neutral options.** Options are stated flat (strengths and costs, no option pre-sold or pre-killed, marketing/recruiter adjectives banned); big forks get a compact multi-axis tradeoff map; and instead of assuming the priority from saved memory, the skill asks what the user is optimizing — a qualitative priority or a scalar threshold where the winner flips — then gives a recommendation conditioned on that answer, confirming or flagging the pick.
 - **Greenfield grounding.** With no codebase to read, options are grounded in the stated requirements + realistic tech landscape (still real tradeoffs, no strawmen).
+- **Plan mode is no longer an exemption.** The stack/architecture/data-model forks must fire via `AskUserQuestion` *during planning*, before the plan commits — plans may no longer present a pre-decided stack with "Key reason:" justifications or defer forks to "during build". Holds at every level/mode/model.
 
 ## [0.2.0] — 2026-06-05
 

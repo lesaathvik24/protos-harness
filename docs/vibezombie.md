@@ -47,6 +47,11 @@ recruiter-legible and token-lean (terse forks, ≤2-sentence reveals).
    qualitative priority (ship speed · hiring · perf · learning) or a scalar threshold where the winner flips
    — then gives a recommendation **conditioned on that answer**, confirming the pick or flagging the
    mismatch. It never crowns a winner up front and **never** uses saved memory as a silent tiebreaker.
+10. **Plan mode is not an exemption.** Producing a plan / calling `ExitPlanMode` does not let high-stakes
+    technical calls (stack · architecture · data model) skip the fork — they must be surfaced via
+    `AskUserQuestion` *during planning*, before the plan commits. A plan must never pre-decide the stack with
+    "Key reason:" justifications or defer forks to "during build". The gate hook can't enforce this (it
+    guards only `Write`/`Edit`), so it's a skill-contract rule that holds at every level / mode / model.
 
 ## Architecture
 
@@ -56,8 +61,9 @@ State under `~/.claude/.vibezombie/` (override via `VIBEZOMBIE_DIR` for tests):
 - `log.md` — append-only decision log (FORK entries + TRIVIAL lines).
 - `profile.md` — the learner model: `## mastered` (suppress) + `## shaky` (keep forking). Gate-irrelevant.
 
-**Decision loop (while active):** classify stakes → map to a concept tag → if the concept is `mastered` in
-`profile.md`, skip the fork (tag `TRIVIAL: mastered:<concept>`) → else if FORK: ground (read code, or for
+**Decision loop (while active):** in **plan mode**, the stack/architecture/data-model forks fire *before the
+plan commits* (no pre-decided stack). classify stakes → map to a concept tag → if the concept is `mastered`
+in `profile.md`, skip the fork (tag `TRIVIAL: mastered:<concept>`) → else if FORK: ground (read code, or for
 greenfield ground in requirements) → `AskUserQuestion` with **neutral options** → tiered reveal (compact
 multi-axis tradeoff map for big forks, ≤2 sentences for small ones) → ask the deciding factor (qualitative
 priority or scalar threshold) once when it's unknown and flips the answer → recommendation **conditioned on
