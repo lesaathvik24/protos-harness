@@ -14,6 +14,7 @@ declare -a TEST_PAIRS=(
   "scan-secrets:scan-secrets.sh"
   "dangerous-command:dangerous-command-guard.sh"
   "commit-message:commit-message-guard.sh"
+  "vibezombie:vibezombie-gate.sh"
 )
 
 for PAIR in "${TEST_PAIRS[@]}"; do
@@ -32,8 +33,18 @@ for PAIR in "${TEST_PAIRS[@]}"; do
       *) echo "SKIP $FIXTURE (unknown prefix)"; continue ;;
     esac
 
+    # Optional per-fixture state setup: a sibling <name>.setup is sourced with a
+    # fresh VIBEZOMBIE_DIR, letting state-dependent hooks seed their filesystem.
+    SETUP="${FIXTURE%.json}.setup"
+    VIBEZOMBIE_DIR="$(mktemp -d)"
+    export VIBEZOMBIE_DIR
+    [[ -f "$SETUP" ]] && source "$SETUP"
+
     OUTPUT=$(bash "$HOOK_PATH" < "$FIXTURE" 2>&1)
     ACTUAL=$?
+
+    rm -rf "$VIBEZOMBIE_DIR"
+    unset VIBEZOMBIE_DIR
 
     if [[ $ACTUAL -eq $EXPECTED ]]; then
       PASS=$((PASS + 1))

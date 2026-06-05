@@ -1,0 +1,2 @@
+# active mode but no tag → edit must be blocked
+printf 'L2\n' > "$VIBEZOMBIE_DIR/active"

@@ -15,7 +15,7 @@ mkdir -p "$CLAUDE_DIR"/{hooks,agents,skills}
 # Hooks
 cp "$REPO_DIR"/hooks/*.sh "$CLAUDE_DIR/hooks/"
 chmod +x "$CLAUDE_DIR/hooks/"*.sh
-echo "  ✓ Hooks installed (7)"
+echo "  ✓ Hooks installed ($(ls "$REPO_DIR"/hooks/*.sh | wc -l | tr -d ' '))"
 
 # Agents
 cp "$REPO_DIR"/agents/*.md "$CLAUDE_DIR/agents/"

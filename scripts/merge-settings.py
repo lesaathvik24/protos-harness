@@ -10,7 +10,10 @@ HOOKS_CONFIG = {
         "PreToolUse": [
             {
                 "matcher": "Write|Edit",
-                "hooks": [{"type": "command", "command": "~/.claude/hooks/scan-secrets.sh"}]
+                "hooks": [
+                    {"type": "command", "command": "~/.claude/hooks/scan-secrets.sh"},
+                    {"type": "command", "command": "~/.claude/hooks/vibezombie-gate.sh"}
+                ]
             },
             {
                 "matcher": "Bash",
