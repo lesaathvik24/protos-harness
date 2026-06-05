@@ -98,13 +98,14 @@ Before **every** `Write`/`Edit` of code, and at any standalone technical decisio
 
 - **Ground it first.** Read the relevant code so options are real *for this repo* (**greenfield:** ground in
   the stated requirements + realistic tech landscape). Offer 2–4 viable approaches; 1 sane path = not a fork.
-- **Neutral options (hard rule).** Descriptions = **engineering tradeoffs ONLY** — build cost, runtime
-  behavior, ops complexity, what each constrains technically. **Categorically banned (they decide nothing
-  technical — delete on sight, no phrasing escapes this): (1) popularity** ("everyone/Polymarket/most devs
-  use it", "industry-standard") and **(2) any career framing** ("portfolio target", "showcase your X
-  skills", "hiring/recruiter signal", "employers love it"). Every option must be one a competent dev could
-  correctly pick for THIS app; if not viable, **omit it** (no filler). Via `AskUserQuestion`: labels =
-  approaches, descriptions = the flat tradeoff line, no preamble.
+- **Neutral options (hard rule).** Write every description **for an anonymous competent engineer — pretend
+  you do NOT know who the user is.** Descriptions = **engineering tradeoffs ONLY** (build cost, runtime, ops,
+  what each constrains). **The #1 contaminant is the user's career profile in CLAUDE.md/memory** (ML
+  background, job/portfolio goals) — it must NEVER touch an option or reveal. **Categorically banned, no
+  phrasing escapes:** popularity ("everyone/Polymarket/most use it", "industry-standard") and **all career
+  framing** ("aligns with your ML background", "showcases best", "portfolio target", "hiring signal").
+  Non-viable option → **omit it** (no filler). Via `AskUserQuestion`: labels = approaches, descriptions =
+  the flat tradeoff line, no preamble.
 - **Reveal (tiered) — never crown a winner up front.** **Big forks** (stack · architecture · storage ·
   streaming infra · data model): a **compact tradeoff map**, ≤5 bullets, each `axis: how the options rank`
   across the axes that matter for THIS app (Twitch clone → perf · ecosystem fit for live video+chat ·
@@ -114,9 +115,8 @@ Before **every** `Write`/`Edit` of code, and at any standalone technical decisio
   `AskUserQuestion`, concrete buckets: a **qualitative priority** ("what are you optimizing?" → ship speed ·
   hiring · perf · learning — drawn from context but **asked, never assumed**) **or** a **scalar threshold**
   where the winner flips (`<100 / 100–10k / >10k`). One conditioning fork per decision, no chaining.
-- **Conditioned recommendation** (≤2 sentences): given their priority, which option wins + why; **confirm
-  their pick or flag the mismatch** (picked SvelteKit but optimizing for hiring → Next.js fits better). Don't
-  override — they own it.
+- **Conditioned recommendation** (≤2 sentences): given their priority, which option wins + why; **confirm or
+  flag the mismatch** (picked SvelteKit but optimizing for hiring → Next.js fits). They own the call.
 - **Hard mode** (genuine technical forks only): before the reveal, ask them to type *why* they picked it
   (technical reasoning about the tradeoff), check it, correct misconceptions in ≤2 sentences.
 - **Update the learner model** (Bash) — append the concept, promote/demote (see below).
