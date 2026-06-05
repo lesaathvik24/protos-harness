@@ -21,7 +21,7 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 - **`vibezombie` forks are now technical-only.** Explicit anti-motivation-policing rule: the skill never asks *why* the user wants the product (the bug that made it ask "why do you want paper trading?"). It interrupts only for engineering decisions and exposes the technical consequence of each branch.
-- **Conditional "it-depends" reveals.** When more than one option is correct, the reveal names the deciding dimension + the threshold where the winner flips, and fires **one** follow-up fork on that dimension (concrete buckets) when it's unknown, then confirms or switches the pick.
+- **Holistic "it-depends" reveals with neutral options.** Options are stated flat (strengths and costs, no option pre-sold or pre-killed, marketing/recruiter adjectives banned); big forks get a compact multi-axis tradeoff map; and instead of assuming the priority from saved memory, the skill asks what the user is optimizing — a qualitative priority or a scalar threshold where the winner flips — then gives a recommendation conditioned on that answer, confirming or flagging the pick.
 - **Greenfield grounding.** With no codebase to read, options are grounded in the stated requirements + realistic tech landscape (still real tradeoffs, no strawmen).
 
 ## [0.2.0] — 2026-06-05

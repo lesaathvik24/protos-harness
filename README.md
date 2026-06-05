@@ -51,10 +51,12 @@ FORK — where should the new filter's state live?
 *Hard* (`/vibezombie on L3 hard` — you must justify your pick **first**; the agent checks your reasoning).
 
 **It forks on tech, not your goals.** It never asks *why* you want to build the thing — that's yours. It
-interrupts only for real engineering calls (stack, storage, data model, sync/async). And when the honest
-answer is *"it depends"*, the reveal names the deciding dimension and the threshold where the right choice
-flips — then asks the one parameter it needs (e.g. *expected users: `<100 / 100–10k / >10k`*) and confirms
-or switches your pick.
+interrupts only for real engineering calls (stack, storage, data model, sync/async), and the options are
+**neutral** — real tradeoffs stated flat, none pre-sold or trapped. The reveal **maps the full tradeoff
+across the axes that matter** (perf · ecosystem fit · ship speed · learning · hiring), and when the honest
+answer is *"it depends"* it names the deciding factor or threshold (e.g. *expected users: `<100 / 100–10k /
+>10k`*). Then it **asks what you're optimizing** and gives a recommendation conditioned on *your* answer,
+confirming or flagging your pick — never assuming the priority for you.
 
 **It learns you.** A cross-session model (`~/.claude/.vibezombie/profile.md`) tracks the concepts you've
 demonstrably mastered and stops re-teaching them, spending interrupts on new ground and ramping difficulty

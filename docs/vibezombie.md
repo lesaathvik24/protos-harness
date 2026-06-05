@@ -35,14 +35,18 @@ recruiter-legible and token-lean (terse forks, ≤2-sentence reveals).
    `TRIVIAL:<≤5-word reason>`; the hook blocks untagged edits. The log is the demo artifact.
 5. **Opt-in.** Hook is a no-op unless `active` exists, so it never contaminates normal work.
 6. **Grounding is non-negotiable.** Options must be genuinely viable *for this repo* (read code first); no
-   strawmen, no obvious-winner-plus-filler. If only one sane path exists, it's not a fork → tag TRIVIAL.
+   strawmen, no obvious-winner-plus-filler, **no pre-sold/pre-killed options** (marketing/recruiter
+   adjectives banned). If only one sane path exists, it's not a fork → tag TRIVIAL.
 7. **Global state, repo stays `protos-harness`.** Installable standalone OR with the whole harness.
 8. **Forks are technical, never motivational.** Interrupt only for engineering decisions (stack, storage,
    data model, sync/async, library, pattern). Never ask *why* the user wants the product — expose the
    technical consequence of each branch instead. A technical *parameter* needed to choose (scale, latency,
    budget) is a legitimate conditioning fork; product motivation is not.
-9. **"It depends" is first-class.** When >1 option is correct, the reveal names the deciding dimension +
-   the threshold where the winner flips, and re-forks **once** on that dimension if it's unknown.
+9. **"It depends" is first-class.** When >1 option is correct, the reveal is a **compact multi-axis
+   tradeoff map** with **neutral options**, and the skill **asks what the user is optimizing** — a
+   qualitative priority (ship speed · hiring · perf · learning) or a scalar threshold where the winner flips
+   — then gives a recommendation **conditioned on that answer**, confirming the pick or flagging the
+   mismatch. It never crowns a winner up front and **never** uses saved memory as a silent tiebreaker.
 
 ## Architecture
 
@@ -54,8 +58,10 @@ State under `~/.claude/.vibezombie/` (override via `VIBEZOMBIE_DIR` for tests):
 
 **Decision loop (while active):** classify stakes → map to a concept tag → if the concept is `mastered` in
 `profile.md`, skip the fork (tag `TRIVIAL: mastered:<concept>`) → else if FORK: ground (read code, or for
-greenfield ground in requirements) → `AskUserQuestion` → reveal (or hard-mode justify-first) → if the
-answer is conditional, name dimension + threshold and re-fork **once** on it when unknown → update
+greenfield ground in requirements) → `AskUserQuestion` with **neutral options** → tiered reveal (compact
+multi-axis tradeoff map for big forks, ≤2 sentences for small ones) → ask the deciding factor (qualitative
+priority or scalar threshold) once when it's unknown and flips the answer → recommendation **conditioned on
+that answer**, confirming or flagging the pick (never assume the priority from memory) → update
 `profile.md` → append to `log.md` + `touch pending-tag` (Bash) → do the edit. If TRIVIAL: log reason + mint
 tag → edit. The hook on `PreToolUse(Write|Edit)`: `active` absent → exit 0; fresh `pending-tag` → consume +
 exit 0; else **exit 2** with a "tag this edit first" message. `profile.md` does **not** affect the gate.
