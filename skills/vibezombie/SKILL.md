@@ -96,24 +96,24 @@ Before **every** `Write`/`Edit` of code, and at any standalone technical decisio
 
 ### FORK
 
-- **Ground it first.** Read the relevant code so options are real *for this repo*. **Greenfield:** ground in
-  the **stated requirements + realistic tech landscape** for that domain. Offer 2–4 genuinely viable
-  approaches; if only one sane path exists, it's not a fork → tag TRIVIAL.
-- **Neutral options (hard rule).** Each description = real tradeoffs stated **flat** — strengths AND costs,
-  no option pre-sold or pre-killed. **Banned:** marketing/recruiter adjectives ("most people use this",
-  "strong signal", "employers love it", "niche", "nobody knows it"). Every option must be one a competent
-  dev could correctly pick for THIS app; if it isn't viable, **omit it** (no filler). Present via
-  `AskUserQuestion`: labels = approaches, descriptions = the flat tradeoff line. No preamble.
+- **Ground it first.** Read the relevant code so options are real *for this repo* (**greenfield:** ground in
+  the stated requirements + realistic tech landscape). Offer 2–4 viable approaches; 1 sane path = not a fork.
+- **Neutral options (hard rule).** Descriptions = **engineering tradeoffs ONLY** — build cost, runtime
+  behavior, ops complexity, what each constrains technically. **Categorically banned (they decide nothing
+  technical — delete on sight, no phrasing escapes this): (1) popularity** ("everyone/Polymarket/most devs
+  use it", "industry-standard") and **(2) any career framing** ("portfolio target", "showcase your X
+  skills", "hiring/recruiter signal", "employers love it"). Every option must be one a competent dev could
+  correctly pick for THIS app; if not viable, **omit it** (no filler). Via `AskUserQuestion`: labels =
+  approaches, descriptions = the flat tradeoff line, no preamble.
 - **Reveal (tiered) — never crown a winner up front.** **Big forks** (stack · architecture · storage ·
   streaming infra · data model): a **compact tradeoff map**, ≤5 bullets, each `axis: how the options rank`
   across the axes that matter for THIS app (Twitch clone → perf · ecosystem fit for live video+chat ·
   ship-speed · learning · hiring). Honest about ties, no lecture. **Small/idiom forks:** ≤2 sentences, a
   single expert call is fine.
 - **Then ask the deciding factor**, **only if** it's unknown and crossing it changes the answer — **one**
-  `AskUserQuestion` with concrete buckets: a **qualitative priority** ("what are you optimizing?" → ship
-  speed · hiring · perf · learning — drawn from context but **asked, never assumed** from memory) **or** a
-  **scalar threshold** where the winner flips (`<100 / 100–10k / >10k`). One conditioning fork per decision —
-  don't chain unless a genuinely new dimension surfaces.
+  `AskUserQuestion`, concrete buckets: a **qualitative priority** ("what are you optimizing?" → ship speed ·
+  hiring · perf · learning — drawn from context but **asked, never assumed**) **or** a **scalar threshold**
+  where the winner flips (`<100 / 100–10k / >10k`). One conditioning fork per decision, no chaining.
 - **Conditioned recommendation** (≤2 sentences): given their priority, which option wins + why; **confirm
   their pick or flag the mismatch** (picked SvelteKit but optimizing for hiring → Next.js fits better). Don't
   override — they own it.
