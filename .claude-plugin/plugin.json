@@ -1,7 +1,7 @@
 {
   "name": "protos-harness",
   "description": "Protos Harness — production-grade hooks, agents, and skills for Claude Code. Block secret leaks, dangerous commands, and bad commits — plus vibezombie, a realtime coach that stops you vibecoding on autopilot.",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "author": {
     "name": "lesaathvik24",
     "url": "https://github.com/lesaathvik24"

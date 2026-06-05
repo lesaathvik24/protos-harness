@@ -5,7 +5,7 @@
 [![Version](https://img.shields.io/badge/version-0.2.0-blue.svg)](CHANGELOG.md)
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-compatible-8B5CF6)](https://docs.anthropic.com/en/docs/claude-code)
 
-> **v0.2 — actively building.** The seven guardrail hooks are battle-tested; community skills and agents are curated. **`vibezombie`** is the first *original* skill built for this harness — and the reason you're probably here. See below.
+> **v0.3 — actively building.** The seven guardrail hooks are battle-tested; community skills and agents are curated. **`vibezombie`** is the first *original* skill built for this harness — now with technical-only forks, "it-depends" conditional reveals, and a cross-session learner model. The reason you're probably here. See below.
 
 A Claude Code harness for developers who want guardrails, not training wheels. Seven production-grade hooks that block secrets, dangerous commands, and bad commits — plus **`vibezombie`**, a realtime coach that stops you vibecoding on autopilot, 23 curated skills, and two purpose-built agents.
 
@@ -49,6 +49,17 @@ FORK — where should the new filter's state live?
 
 **Modes:** *Reveal* (default — after you pick, the agent states the expert call in ≤2 sentences) ·
 *Hard* (`/vibezombie on L3 hard` — you must justify your pick **first**; the agent checks your reasoning).
+
+**It forks on tech, not your goals.** It never asks *why* you want to build the thing — that's yours. It
+interrupts only for real engineering calls (stack, storage, data model, sync/async). And when the honest
+answer is *"it depends"*, the reveal names the deciding dimension and the threshold where the right choice
+flips — then asks the one parameter it needs (e.g. *expected users: `<100 / 100–10k / >10k`*) and confirms
+or switches your pick.
+
+**It learns you.** A cross-session model (`~/.claude/.vibezombie/profile.md`) tracks the concepts you've
+demonstrably mastered and stops re-teaching them, spending interrupts on new ground and ramping difficulty
+as you improve. Inspect or correct it anytime with `/vibezombie profile` — you own the model, it's not a
+black box.
 
 **Receipts.** Every decision is tagged and appended to `~/.claude/.vibezombie/log.md` — your auditable proof
 that nothing passed unexamined:
@@ -177,7 +188,7 @@ echo '{"command": "rm -rf /"}' | bash hooks/dangerous-command-guard.sh
 bash tests/run.sh
 ```
 
-13 fixture-based tests cover the four blocking hooks (pass and block cases), including the `vibezombie` gate's active/tagged/untagged states. CI runs them on every push across Ubuntu and macOS.
+13 fixture-based tests cover the four blocking hooks (pass and block cases), including the `vibezombie` gate's active/tagged/untagged states. CI runs them on every push across Ubuntu and macOS. The `vibezombie` skill's *behavior* (fork quality, conditional reveals, learner-model suppression) is covered by human-readable scenario rubrics in `tests/scenarios/vibezombie/` — run live now, automatable as transcript evals later.
 
 ---
 
@@ -278,7 +289,7 @@ These are next on the list — PRs welcome:
 - [ ] `cost-tracker.sh` — PostToolUse hook logging token delta per tool to `~/.claude/session-costs.jsonl` + `/cost-report` skill
 - [ ] `context-budget.sh` — PreToolUse hook warning when session is >70% of context window
 - [ ] `auto-checkpoint` skill — `/checkpoint` commits current state with timestamp; `/restore-checkpoint` rolls back
-- [x] Original (non-curated) skills written for this harness — **`vibezombie` shipped** (v0.2)
+- [x] Original (non-curated) skills written for this harness — **`vibezombie` shipped** (v0.2), with technical-only forks, conditional reveals + cross-session learner model (v0.3)
 - [ ] Optional Slack/Discord notification on blocked actions
 
 ---

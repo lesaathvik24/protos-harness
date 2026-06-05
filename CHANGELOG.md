@@ -11,7 +11,18 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 - `cost-tracker.sh` PostToolUse hook for per-tool token tracking
 - `context-budget.sh` PreToolUse hook warning at >70% context usage
 - `auto-checkpoint` skill with `/checkpoint` and `/restore-checkpoint` commands
-- `vibezombie` Phase B — global cross-session learner model (`profile.md`) that ramps difficulty and suppresses already-mastered forks
+
+## [0.3.0] — 2026-06-05
+
+### Added
+- **`vibezombie` Phase B — cross-session learner model.** `~/.claude/.vibezombie/profile.md` tracks concepts as `## mastered` / `## shaky`; forks on mastered concepts are suppressed (logged `TRIVIAL: mastered:<concept>`), difficulty ramps as mastery grows, and the model auto-updates after each fork (a correct Hard-mode justification counts more than a Reveal-mode pick).
+- **`/vibezombie profile`** control surface — inspect/correct the learner model: `mastered <c>` / `shaky <c>` / `forget <c>` / `reset`. The user owns the model.
+- **`tests/scenarios/vibezombie/`** — 5 human-readable behavioral rubrics (PASS/FAIL anti-patterns) for fork quality, with `stock-trading-stack.md` as the canonical regression case. Run live now; automatable as transcript evals later.
+
+### Changed
+- **`vibezombie` forks are now technical-only.** Explicit anti-motivation-policing rule: the skill never asks *why* the user wants the product (the bug that made it ask "why do you want paper trading?"). It interrupts only for engineering decisions and exposes the technical consequence of each branch.
+- **Conditional "it-depends" reveals.** When more than one option is correct, the reveal names the deciding dimension + the threshold where the winner flips, and fires **one** follow-up fork on that dimension (concrete buckets) when it's unknown, then confirms or switches the pick.
+- **Greenfield grounding.** With no codebase to read, options are grounded in the stated requirements + realistic tech landscape (still real tradeoffs, no strawmen).
 
 ## [0.2.0] — 2026-06-05
 
