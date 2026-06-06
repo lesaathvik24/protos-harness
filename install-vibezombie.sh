@@ -12,7 +12,7 @@ echo "Installing vibezombie to $CLAUDE_DIR..."
 
 mkdir -p "$CLAUDE_DIR/hooks" "$CLAUDE_DIR/skills/vibezombie"
 
-for h in vibezombie-gate.sh vibezombie-neutrality.sh vibezombie-plan-gate.sh; do
+for h in vibezombie-gate.sh vibezombie-neutrality.sh vibezombie-plan-gate.sh vibezombie-session-cleanup.sh; do
   cp "$REPO_DIR/hooks/$h" "$CLAUDE_DIR/hooks/"
   chmod +x "$CLAUDE_DIR/hooks/$h"
   echo "  ✓ Hook installed ($h)"
@@ -35,7 +35,8 @@ entries = [
 ]
 
 settings = json.loads(path.read_text()) if path.exists() else {}
-pre = settings.setdefault("hooks", {}).setdefault("PreToolUse", [])
+hooks = settings.setdefault("hooks", {})
+pre = hooks.setdefault("PreToolUse", [])
 
 for matcher, cmd in entries:
     if any(h.get("command") == cmd for m in pre for h in m.get("hooks", [])):
@@ -47,6 +48,12 @@ for matcher, cmd in entries:
             break
     else:
         pre.append({"matcher": matcher, "hooks": [hook]})
+
+# SessionEnd hygiene: clears the per-session state so flags never outlive their session.
+cleanup_cmd = "~/.claude/hooks/vibezombie-session-cleanup.sh"
+end = hooks.setdefault("SessionEnd", [])
+if not any(h.get("command") == cleanup_cmd for m in end for h in m.get("hooks", [])):
+    end.append({"hooks": [{"type": "command", "command": cleanup_cmd}]})
 
 path.parent.mkdir(parents=True, exist_ok=True)
 path.write_text(json.dumps(settings, indent=2) + "\n")

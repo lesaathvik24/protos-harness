@@ -3,18 +3,30 @@
 # While learning mode is active, blocks ExitPlanMode unless a stack/architecture
 # decision was surfaced + logged DURING planning. The Write|Edit gate can't catch this
 # (it never sees ExitPlanMode), so the railroaded "I'll fork during build" deferral
-# slips through — this hook closes that gap. No-op unless the active flag exists.
-# State dir overridable via VIBEZOMBIE_DIR (tests).
+# slips through — this hook closes that gap. Scope is per-SESSION (see vibezombie-gate.sh):
+# only fires in the session that ran /vibezombie. State dir overridable via VIBEZOMBIE_DIR.
 set -uo pipefail
 
 VZ_DIR="${VIBEZOMBIE_DIR:-$HOME/.claude/.vibezombie}"
 
-# Drain stdin (the plan JSON); the decision is log-based, not content-based.
-cat >/dev/null 2>&1 || true
+# Capture the plan JSON; we need session_id from it to scope the gate.
+INPUT=$(cat 2>/dev/null || true)
 
-# Mode off → allow silently.
-[[ -f "$VZ_DIR/active" ]] || exit 0
+# Resolve the session id from the hook payload (sanitized for filesystem safety).
+SID=$(printf '%s' "$INPUT" | python3 -c '
+import sys, json
+try:
+    s = json.load(sys.stdin).get("session_id", "")
+except Exception:
+    s = ""
+print("".join(c for c in str(s) if c.isalnum() or c in "._-"))
+' 2>/dev/null || true)
 
+# No scope, or mode off for THIS session → allow silently.
+[[ -n "$SID" ]] || exit 0
+[[ -f "$VZ_DIR/sessions/$SID/active" ]] || exit 0
+
+# The decision log is global (cross-session demo artifact + learner companion).
 LOG="$VZ_DIR/log.md"
 
 # Look only at entries logged AFTER the last session marker (seeded at activation).

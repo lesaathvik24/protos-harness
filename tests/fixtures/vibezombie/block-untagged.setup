@@ -1,2 +1,3 @@
-# active mode but no tag → edit must be blocked
-printf 'L2\n' > "$VIBEZOMBIE_DIR/active"
+# active mode (this session) but no tag → edit must be blocked
+mkdir -p "$VIBEZOMBIE_DIR/sessions/sess-A"
+printf 'L2\n' > "$VIBEZOMBIE_DIR/sessions/sess-A/active"

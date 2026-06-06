@@ -3,15 +3,29 @@
 # while learning mode is active, so fork options stay engineering-only regardless of
 # what sits in the user's CLAUDE.md / memory. The prompt rule is the first line of
 # defense; this hook is the backstop that ships with the skill and protects any installer.
-# No-op unless the active flag exists. State dir overridable via VIBEZOMBIE_DIR (tests).
+# Scope is per-SESSION (see vibezombie-gate.sh): only fires in the session that ran
+# /vibezombie. No session id, or mode off for this session → allow silently.
+# State dir overridable via VIBEZOMBIE_DIR (tests).
 set -uo pipefail
 
 VZ_DIR="${VIBEZOMBIE_DIR:-$HOME/.claude/.vibezombie}"
 
 INPUT=$(cat)
 
-# Mode off → allow silently (never touch normal work or other skills' questions).
-[[ -f "$VZ_DIR/active" ]] || exit 0
+# Resolve the session id from the hook payload (sanitized for filesystem safety).
+SID=$(printf '%s' "$INPUT" | python3 -c '
+import sys, json
+try:
+    s = json.load(sys.stdin).get("session_id", "")
+except Exception:
+    s = ""
+print("".join(c for c in str(s) if c.isalnum() or c in "._-"))
+' 2>/dev/null || true)
+
+# No scope, or mode off for THIS session → allow silently (never touch normal work or
+# other skills' questions).
+[[ -n "$SID" ]] || exit 0
+[[ -f "$VZ_DIR/sessions/$SID/active" ]] || exit 0
 
 HIT=$(printf '%s' "$INPUT" | python3 -c '
 import sys, json, re

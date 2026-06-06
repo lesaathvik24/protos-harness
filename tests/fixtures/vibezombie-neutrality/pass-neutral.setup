@@ -1,2 +1,3 @@
-# active + clean engineering-only descriptions → allowed
-printf 'L2 hard\n' > "$VIBEZOMBIE_DIR/active"
+# active (this session) + clean engineering-only descriptions → allowed
+mkdir -p "$VIBEZOMBIE_DIR/sessions/sess-A"
+printf 'L2 hard\n' > "$VIBEZOMBIE_DIR/sessions/sess-A/active"

@@ -1,2 +1,3 @@
-# active + career/personal-advancement framing in an option → blocked
-printf 'L2 hard\n' > "$VIBEZOMBIE_DIR/active"
+# active (this session) + career/personal-advancement framing in an option → blocked
+mkdir -p "$VIBEZOMBIE_DIR/sessions/sess-A"
+printf 'L2 hard\n' > "$VIBEZOMBIE_DIR/sessions/sess-A/active"

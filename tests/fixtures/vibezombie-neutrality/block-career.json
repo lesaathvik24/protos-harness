@@ -1,1 +1,1 @@
-{"questions": [{"question": "Which stack?", "options": [{"label": "Next + Postgres", "description": "Full-stack TS, fits the portfolio-ship rule"}, {"label": "React + FastAPI", "description": "Python backend, closer to your AI/ML trajectory"}]}]}
+{"session_id": "sess-A", "questions": [{"question": "Which stack?", "options": [{"label": "Next + Postgres", "description": "Full-stack TS, fits the portfolio-ship rule"}, {"label": "React + FastAPI", "description": "Python backend, closer to your AI/ML trajectory"}]}]}

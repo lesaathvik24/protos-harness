@@ -1,1 +1,1 @@
-{"questions": [{"question": "Which stack?", "options": [{"label": "Next + Postgres", "description": "server-rendered React, one Node runtime, SQL store"}, {"label": "React + FastAPI", "description": "SPA frontend, Python API, you own the session layer"}]}]}
+{"session_id": "sess-A", "questions": [{"question": "Which stack?", "options": [{"label": "Next + Postgres", "description": "server-rendered React, one Node runtime, SQL store"}, {"label": "React + FastAPI", "description": "SPA frontend, Python API, you own the session layer"}]}]}

@@ -1,0 +1,4 @@
+# vibezombie active in a DIFFERENT session (sess-A). The edit comes from sess-B, which
+# never invoked the skill → must pass silently (issue #1: no cross-session/project bleed).
+mkdir -p "$VIBEZOMBIE_DIR/sessions/sess-A"
+printf 'L2\n' > "$VIBEZOMBIE_DIR/sessions/sess-A/active"

@@ -1,0 +1,5 @@
+# a live session dir + legacy global flags exist; cleanup removes them and exits 0
+mkdir -p "$VIBEZOMBIE_DIR/sessions/sess-A"
+printf 'L2\n' > "$VIBEZOMBIE_DIR/sessions/sess-A/active"
+printf 'L2\n' > "$VIBEZOMBIE_DIR/active"
+touch "$VIBEZOMBIE_DIR/pending-tag"

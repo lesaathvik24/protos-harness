@@ -1,0 +1,4 @@
+# contaminated option text, but vibezombie is active in sess-A, not the asking session
+# (sess-B) → neutrality must not fire (issue #1).
+mkdir -p "$VIBEZOMBIE_DIR/sessions/sess-A"
+printf 'L2 hard\n' > "$VIBEZOMBIE_DIR/sessions/sess-A/active"

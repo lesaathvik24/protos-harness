@@ -1,2 +1,3 @@
-# active + popularity/bandwagon framing in an option → blocked
-printf 'L2\n' > "$VIBEZOMBIE_DIR/active"
+# active (this session) + popularity/bandwagon framing in an option → blocked
+mkdir -p "$VIBEZOMBIE_DIR/sessions/sess-A"
+printf 'L2 hard\n' > "$VIBEZOMBIE_DIR/sessions/sess-A/active"

@@ -1,3 +1,4 @@
-# active mode + a fresh tag minted by the skill → edit is allowed
-printf 'L2\n' > "$VIBEZOMBIE_DIR/active"
-touch "$VIBEZOMBIE_DIR/pending-tag"
+# active mode + a fresh tag minted by the skill (this session) → edit is allowed
+mkdir -p "$VIBEZOMBIE_DIR/sessions/sess-A"
+printf 'L2\n' > "$VIBEZOMBIE_DIR/sessions/sess-A/active"
+touch "$VIBEZOMBIE_DIR/sessions/sess-A/pending-tag"

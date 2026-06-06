@@ -1,1 +1,1 @@
-{"questions": [{"question": "Which stack?", "options": [{"label": "Next", "description": "the industry-standard choice everyone uses"}, {"label": "SvelteKit", "description": "smaller core, fast dev server"}]}]}
+{"session_id": "sess-A", "questions": [{"question": "Which stack?", "options": [{"label": "Next + Postgres", "description": "the industry-standard choice everyone uses"}, {"label": "React + FastAPI", "description": "SPA frontend, Python API"}]}]}

@@ -5,7 +5,7 @@ description: Realtime anti-vibecoding coach. Pauses at each meaningful decision 
 
 # vibezombie
 
-> Vibecoding makes you a zombie. This skill makes you choose.  ·  **build: v0.4.0**
+> Vibecoding makes you a zombie. This skill makes you choose.  ·  **build: v0.5.0**
 
 A contract that turns building into deliberate practice. While **active**, at each meaningful **technical**
 fork you surface the real alternatives, make the user **own the pick**, then write code. A companion hook
@@ -32,15 +32,21 @@ concrete buckets (see below), never "why".
 
 ## State (managed with **Bash only**, never Write/Edit)
 
-All state lives under `~/.claude/.vibezombie/` (one dir, global to the user). **Critical:** the gate hook
-matches `Write|Edit`, so manage every state file with Bash (`echo`, `touch`, `printf`, `cat >>`) — using
-the Write/Edit tools here would block on the gate you haven't satisfied yet.
+State lives under `~/.claude/.vibezombie/`. **Per-session** state (mode on/off + the edit tag) is scoped to
+the current session at `~/.claude/.vibezombie/sessions/$CLAUDE_CODE_SESSION_ID/` so activation NEVER bleeds
+into other sessions or projects (issue #1). **Cross-session** state (the log + learner model) stays in the
+root dir. **Critical:** the gate hook matches `Write|Edit`, so manage every state file with Bash (`echo`,
+`touch`, `printf`, `cat >>`) — using the Write/Edit tools here would block on the gate you haven't satisfied
+yet. Shell vars don't persist between Bash calls, so re-derive the session dir inline each time:
+`S=~/.claude/.vibezombie/sessions/"$CLAUDE_CODE_SESSION_ID"`.
 
-- `active` — present ⇢ mode on; contents = level + optional `hard` (e.g. `L2`, `L3 hard`). Absent ⇢ off.
-- `pending-tag` — one-shot token you mint immediately before each code edit; the hook consumes it.
-- `log.md` — append-only decision log. **This is the demo artifact** — keep it clean and readable.
-- `profile.md` — the cross-session learner model (concepts you've mastered / are shaky on). Drives
-  suppression + ramping. The user owns it; never treat it as a black box.
+- `sessions/<id>/active` — present ⇢ mode on **for this session**; contents = level + optional `hard`
+  (e.g. `L2`, `L3 hard`). Absent ⇢ off. Each hook reads the session id from its payload, so a session that
+  never ran `/vibezombie` passes silently.
+- `sessions/<id>/pending-tag` — one-shot token you mint immediately before each code edit; the hook consumes it.
+- `log.md` — append-only decision log (root, shared). **This is the demo artifact** — keep it clean and readable.
+- `profile.md` — the cross-session learner model (root, shared): concepts you've mastered / are shaky on.
+  Drives suppression + ramping. The user owns it; never treat it as a black box.
 
 ## Control surface
 
@@ -57,12 +63,17 @@ Parse the slash-command args:
   - `/vibezombie profile forget <concept>` — drop a concept entirely.
   - `/vibezombie profile reset` — wipe the model (with a one-line confirm).
 
-Activate: `mkdir -p ~/.claude/.vibezombie && printf '%s\n' "L2" > ~/.claude/.vibezombie/active`
-(use `"L3 hard"` for hard mode). Deactivate: `rm -f ~/.claude/.vibezombie/active`. **Confirm in one line
-showing the build** — `vibezombie v0.4.0 active — L2 hard` — so a stale load is instantly visible. (Edits to
+Activate (session-scoped — replace `L2` with `L3 hard` for hard mode):
+```
+S=~/.claude/.vibezombie/sessions/"$CLAUDE_CODE_SESSION_ID"
+mkdir -p "$S" && printf '%s\n' "L2" > "$S/active"
+```
+Deactivate: `rm -f ~/.claude/.vibezombie/sessions/"$CLAUDE_CODE_SESSION_ID"/active`. **Confirm in one line
+showing the build** — `vibezombie v0.5.0 active — L2 hard` — so a stale load is instantly visible. (Edits to
 this file load only on `/vibezombie off` then `on`; a running session never hot-reloads.)
 
-On activation, seed headers if missing, then append a session marker (the plan-gate reads forks after it):
+On activation, seed the shared headers if missing, then append a session marker (the plan-gate reads forks
+after it):
 ```
 [ -f ~/.claude/.vibezombie/log.md ] || printf '# vibezombie decision log\n\n' > ~/.claude/.vibezombie/log.md
 [ -f ~/.claude/.vibezombie/profile.md ] || printf '# vibezombie learner profile\n\n## mastered\n\n## shaky\n' > ~/.claude/.vibezombie/profile.md
@@ -123,7 +134,7 @@ Before **every** `Write`/`Edit` of code, and at any standalone technical decisio
   pick, ask them to type *why* (technical reasoning about the tradeoff) before the reveal, check it, correct
   misconceptions in ≤2 sentences.
 - **Update the learner model** (Bash) — append the concept, promote/demote (see below).
-- **Log + tag** (Bash), then do the edit:
+- **Log + tag** (Bash), then do the edit (the tag is session-scoped):
   ```
   cat >> ~/.claude/.vibezombie/log.md <<'EOF'
   ## FORK — <decision, ~6 words>
@@ -132,7 +143,7 @@ Before **every** `Write`/`Edit` of code, and at any standalone technical decisio
   - recommendation: <wins given their stated priority + one-clause why>
   - depends-on: <deciding priority/dimension + how it flips the answer, or "none">
   EOF
-  touch ~/.claude/.vibezombie/pending-tag
+  touch ~/.claude/.vibezombie/sessions/"$CLAUDE_CODE_SESSION_ID"/pending-tag
   ```
 
 ### TRIVIAL
@@ -140,7 +151,7 @@ Before **every** `Write`/`Edit` of code, and at any standalone technical decisio
 No fork (single sane path, or a mastered concept). Just record it and proceed:
 ```
 printf -- '- TRIVIAL: %s\n' "<≤5-word reason>" >> ~/.claude/.vibezombie/log.md
-touch ~/.claude/.vibezombie/pending-tag
+touch ~/.claude/.vibezombie/sessions/"$CLAUDE_CODE_SESSION_ID"/pending-tag
 ```
 
 The `pending-tag` makes the very next `Write`/`Edit` pass the gate. One tag = one edit; mint a fresh tag
