@@ -26,6 +26,24 @@
             "command": "~/.claude/hooks/commit-message-guard.sh"
           }
         ]
+      },
+      {
+        "matcher": "AskUserQuestion",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/vibezombie-neutrality.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "ExitPlanMode",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/vibezombie-plan-gate.sh"
+          }
+        ]
       }
     ],
     "PostToolUse": [

@@ -3,6 +3,10 @@
 > Regression for the second sighting of the bug: the skill forked on **scope** ("what scope are you
 > building → full platform") and then, in Hard mode, demanded "why did you pick this over the narrower
 > scopes?". Scope is *what to build* — the user's call, never a vibezombie fork.
+>
+> See also `scope-then-stack.md` for the platform→stack ordering. The neutrality hook
+> (`vibezombie-neutrality.sh`) additionally blocks any career/popularity framing that leaks into the
+> follow-on technical fork's options.
 
 ## setup
 

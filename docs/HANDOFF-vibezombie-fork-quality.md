@@ -1,4 +1,22 @@
-# HANDOFF — vibezombie fork-QUALITY: career-context contamination (UNRESOLVED)
+# HANDOFF — vibezombie fork-QUALITY: career-context contamination (RESOLVED in v0.4.0)
+
+> **RESOLUTION (2026-06-06).** The §6 open bugs are addressed structurally, not by more wording:
+> - **Career/popularity contamination** → `hooks/vibezombie-neutrality.sh`, a `PreToolUse(AskUserQuestion)`
+>   gate (opt-in, gated on `active`) that scans option text and blocks career/personal-advancement +
+>   popularity framing. It **ships with the skill**, so it protects any installer regardless of what's in
+>   *their* `CLAUDE.md` — the user's own `CLAUDE.md` was intentionally **left as-is** (relocation would only
+>   fix one machine). The prompt rule stays as the first line; the hook is the model-agnostic backstop.
+> - **Plan-mode rule #10 not binding** → `hooks/vibezombie-plan-gate.sh`, a `PreToolUse(ExitPlanMode)` gate
+>   that blocks a plan until a `## FORK` (or auditable `## NO-FORK:`) is logged after the session marker.
+> - **Fork UX** → scope/stack split into two ordered steps with bare factual options; Hard "why" lands on the
+>   stack pick, never scope. Plus a visible `build: v0.4.0` marker echoed at activation (ends stale-load
+>   ambiguity). Suite is 21/21. The §8 non-skill items (PAT, gh auth, GitHub issue) are still open.
+>
+> Original handoff (context) preserved below.
+
+---
+
+# HANDOFF — vibezombie fork-QUALITY: career-context contamination (was UNRESOLVED)
 
 > Self-contained pick-up doc for the next session. The "holistic forks" refinement was implemented and
 > committed, but **live testing exposed a deeper, still-OPEN bug**: fork options keep leaking the user's

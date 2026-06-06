@@ -1,0 +1,3 @@
+# active + a ## FORK logged after the session marker → plan allowed
+printf 'L2 hard\n' > "$VIBEZOMBIE_DIR/active"
+printf '# vibezombie decision log\n\n<!-- vz-session 2026-06-06T09:00:00Z -->\n## FORK — stack for the app\n- chose: Next + Postgres\n' > "$VIBEZOMBIE_DIR/log.md"

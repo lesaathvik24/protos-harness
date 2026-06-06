@@ -7,9 +7,10 @@
 
 The first **original** skill in `protos-harness`. A realtime anti-vibecoding coach: at each meaningful
 decision the agent surfaces genuine alternatives *grounded in the actual codebase* (via `AskUserQuestion`)
-and makes the user own the pick before any code is written. A `PreToolUse(Write|Edit)` hook blocks every
-untagged edit while the mode is active, so the agent can't silently skip the lesson. Every decision is
-appended to an auditable log.
+and makes the user own the pick before any code is written. Three opt-in `PreToolUse` gates enforce it while
+active: `Write|Edit` blocks untagged edits, `AskUserQuestion` blocks contaminated (career/popularity) fork
+options, and `ExitPlanMode` blocks a plan that skipped the stack fork — so the agent can't silently skip the
+lesson. Every decision is appended to an auditable log.
 
 **Why it exists:** it's the deployed, demo-able public ship gating job applications. Hard constraints:
 recruiter-legible and token-lean (terse forks, ≤2-sentence reveals).
@@ -22,6 +23,11 @@ recruiter-legible and token-lean (terse forks, ≤2-sentence reveals).
   deciding dimension + threshold and re-fork once when it's unknown.
 - **Phase B — SHIPPED** (v0.3.0): the cross-session learner model (`profile.md`) with suppression,
   ramping, and the `/vibezombie profile` control surface. Purely additive — nothing in A was a stub for it.
+- **Structural enforcement — SHIPPED** (v0.4.0): scope→stack split into two ordered steps with bare factual
+  options; two new opt-in hooks make the previously prompt-only rules *bind* on any model —
+  `vibezombie-neutrality.sh` (blocks career/popularity framing in `AskUserQuestion` options) and
+  `vibezombie-plan-gate.sh` (blocks `ExitPlanMode` until the stack fork is logged). Plus a visible `build:`
+  marker echoed at activation to end stale-load ambiguity.
 
 ## Locked design decisions (do not re-litigate)
 
@@ -47,11 +53,17 @@ recruiter-legible and token-lean (terse forks, ≤2-sentence reveals).
    qualitative priority (ship speed · hiring · perf · learning) or a scalar threshold where the winner flips
    — then gives a recommendation **conditioned on that answer**, confirming the pick or flagging the
    mismatch. It never crowns a winner up front and **never** uses saved memory as a silent tiebreaker.
-10. **Plan mode is not an exemption.** Producing a plan / calling `ExitPlanMode` does not let high-stakes
-    technical calls (stack · architecture · data model) skip the fork — they must be surfaced via
-    `AskUserQuestion` *during planning*, before the plan commits. A plan must never pre-decide the stack with
-    "Key reason:" justifications or defer forks to "during build". The gate hook can't enforce this (it
-    guards only `Write`/`Edit`), so it's a skill-contract rule that holds at every level / mode / model.
+10. **Plan mode is not an exemption — hook-enforced.** Producing a plan / calling `ExitPlanMode` does not let
+    high-stakes technical calls (stack · architecture · data model) skip the fork — they must be surfaced via
+    `AskUserQuestion` *during planning*, before the plan commits, never pre-decided with "Key reason:" lines
+    or deferred to "during build". `vibezombie-plan-gate.sh` (PreToolUse `ExitPlanMode`) blocks the plan until
+    a `## FORK` is logged after the session marker, or an explicit, auditable `## NO-FORK: <reason>` escape.
+11. **Neutrality is hook-enforced; scope ≠ stack.** Platform/scope ("where does it run", "what scope") is a
+    plain question asked **first**; the stack/architecture it forces is a **separate** `AskUserQuestion` with
+    bare factual options (comparison deferred to the post-pick reveal), never one fused option like
+    "Web (React/Next.js)". `vibezombie-neutrality.sh` (PreToolUse `AskUserQuestion`) blocks option text
+    carrying career/personal-advancement or popularity framing — the model-agnostic backstop for the
+    always-on CLAUDE.md leak that wording alone couldn't stop, and it ships with the skill for any installer.
 
 ## Architecture
 
@@ -82,6 +94,8 @@ deadlock.
 |------|------|
 | `skills/vibezombie/SKILL.md` | The brain: control surface, stakes rubric, grounding + terseness rules, modes, tagging protocol |
 | `hooks/vibezombie-gate.sh` | The gate: opt-in, consumes `pending-tag`, exit 0/2, honors `VIBEZOMBIE_DIR` |
+| `hooks/vibezombie-neutrality.sh` | Opt-in `AskUserQuestion` gate: blocks career/popularity framing in fork options |
+| `hooks/vibezombie-plan-gate.sh` | Opt-in `ExitPlanMode` gate: blocks a plan until a `## FORK`/`## NO-FORK` is logged |
 | `install-vibezombie.sh` | Standalone installer (skill + gate + one settings entry), idempotent |
 | `settings.json`, `scripts/merge-settings.py` | Gate registered under `PreToolUse` `Write|Edit` |
 | `tests/run.sh` | Generic per-fixture `.setup` sourcing with fresh `VIBEZOMBIE_DIR` |

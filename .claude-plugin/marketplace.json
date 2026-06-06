@@ -9,7 +9,7 @@
     {
       "name": "protos-harness",
       "source": "./",
-      "version": "0.3.0",
+      "version": "0.4.0",
       "description": "Production-grade hooks, agents, and skills for Claude Code — incl. vibezombie, a realtime anti-vibecoding coach"
     }
   ]

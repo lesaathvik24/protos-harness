@@ -1,0 +1,3 @@
+# active + session marker but NO fork logged → plan blocked (the railroading case)
+printf 'L2 hard\n' > "$VIBEZOMBIE_DIR/active"
+printf '# vibezombie decision log\n\n<!-- vz-session 2026-06-06T11:00:00Z -->\n' > "$VIBEZOMBIE_DIR/log.md"

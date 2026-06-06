@@ -15,6 +15,8 @@ declare -a TEST_PAIRS=(
   "dangerous-command:dangerous-command-guard.sh"
   "commit-message:commit-message-guard.sh"
   "vibezombie:vibezombie-gate.sh"
+  "vibezombie-neutrality:vibezombie-neutrality.sh"
+  "vibezombie-plan-gate:vibezombie-plan-gate.sh"
 )
 
 for PAIR in "${TEST_PAIRS[@]}"; do

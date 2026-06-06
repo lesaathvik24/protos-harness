@@ -1,0 +1,2 @@
+# active + clean engineering-only descriptions → allowed
+printf 'L2 hard\n' > "$VIBEZOMBIE_DIR/active"

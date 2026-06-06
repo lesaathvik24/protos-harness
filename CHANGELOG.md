@@ -12,6 +12,18 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 - `context-budget.sh` PreToolUse hook warning at >70% context usage
 - `auto-checkpoint` skill with `/checkpoint` and `/restore-checkpoint` commands
 
+## [0.4.0] — 2026-06-06
+
+### Added
+- **`vibezombie-neutrality.sh`** — opt-in `PreToolUse(AskUserQuestion)` gate. While active, it scans fork option text and **blocks** any career/personal-advancement framing ("aligns with your ML background", "hiring signal", "portfolio target") or popularity framing ("everyone uses it", "industry-standard"). This is the model-agnostic backstop for the always-on `CLAUDE.md` career-context leak that prompt wording alone never stopped — and it ships with the skill, so it protects any installer regardless of what's in *their* `CLAUDE.md`.
+- **`vibezombie-plan-gate.sh`** — opt-in `PreToolUse(ExitPlanMode)` gate. While active, it **blocks a plan** until a `## FORK` (or an explicit, auditable `## NO-FORK: <reason>`) is logged after the session marker — so plan mode can no longer defer the stack/architecture fork to "during build". Activation now appends a `<!-- vz-session … -->` marker to the log for this check.
+- **`tests/scenarios/vibezombie/scope-then-stack.md`** — rubric for the platform→stack ordering (platform asked plainly, stack a separate fork, Hard "why" on the stack pick, no fused options).
+- Test fixtures for both new hooks (`tests/fixtures/vibezombie-neutrality/`, `tests/fixtures/vibezombie-plan-gate/`); suite is now **21 passing**.
+
+### Changed
+- **Scope and stack are two separate, ordered steps.** Platform/scope ("where does it run") is a plain clarifying question (no Hard gate, no justify); the stack/architecture it forces is a **separate** `AskUserQuestion` with **bare factual options** (what each *is*, not why it's better — comparison deferred to the post-pick reveal). Fused options like "Web (React/Next.js)" are banned, and Hard mode's justify-first lands on the **stack** pick, never on scope.
+- **Visible build marker.** `SKILL.md` carries a `build: v0.4.0` line, echoed in the one-line activation confirmation (`vibezombie v0.4.0 active — L2 hard`), so a stale-loaded skill is instantly recognizable.
+
 ## [0.3.0] — 2026-06-05
 
 ### Added

@@ -25,9 +25,9 @@ The instant the agent hits a real decision — where state lives, sync vs async,
 It shows you the actual options *for your codebase* (not textbook ones), each with its real tradeoff. **You
 pick. Then it builds. You don't get the code until you make the call.**
 
-And it can't quietly skip the lesson: a `PreToolUse` hook blocks any edit the agent didn't first account for —
-either a fork it put to *you*, or a trivial change it logged a reason for. No silent decisions. You're the
-navigator now, not the rubber stamp.
+And it can't quietly skip the lesson: `PreToolUse` gates block any edit the agent didn't first account for,
+reject a plan that skipped the stack fork, and strip career/popularity bias out of the options. No silent
+decisions. You're the navigator now, not the rubber stamp.
 
 ```
 /vibezombie on L2
@@ -50,9 +50,13 @@ FORK — where should the new filter's state live?
 **Modes:** *Reveal* (default — after you pick, the agent states the expert call in ≤2 sentences) ·
 *Hard* (`/vibezombie on L3 hard` — you must justify your pick **first**; the agent checks your reasoning).
 
-**It forks on tech, not your goals.** It never asks *why* you want to build the thing — that's yours. It
-interrupts only for real engineering calls (stack, storage, data model, sync/async), and the options are
-**neutral** — real tradeoffs stated flat, none pre-sold or trapped. The reveal **maps the full tradeoff
+**It forks on tech, not your goals.** It never asks *why* you want to build the thing — that's yours.
+**Scope comes first as a plain question** ("where does it run", what to build); the **stack it forces is a
+separate fork** with bare options — never fused into one (`"Web (React/Next.js)"` is banned). It interrupts
+only for real engineering calls (stack, storage, data model, sync/async), and the options are **neutral** —
+real tradeoffs stated flat, none pre-sold or trapped, with a gate that **hard-blocks any career or popularity
+phrasing** that leaks into an option (so neutrality holds even when your `CLAUDE.md` is full of personal
+context). The reveal **maps the full tradeoff
 across the axes that matter** (perf · ecosystem fit · ship speed · learning · hiring), and when the honest
 answer is *"it depends"* it names the deciding factor or threshold (e.g. *expected users: `<100 / 100–10k /
 >10k`*). Then it **asks what you're optimizing** and gives a recommendation conditioned on *your* answer,
@@ -83,8 +87,10 @@ that nothing passed unexamined:
 curl -fsSL https://raw.githubusercontent.com/lesaathvik24/protos-harness/main/install-vibezombie.sh | bash
 ```
 
-Then restart `claude` and run `/vibezombie`. Turn it off anytime with `/vibezombie off` — the hook is a
-no-op when inactive, so it never touches your normal work.
+Then restart `claude` and run `/vibezombie`. Turn it off anytime with `/vibezombie off` — the hooks are a
+no-op when inactive, so they never touch your normal work. The activation line shows the build
+(`vibezombie v0.4.0 active`) so you always know which version is loaded; skill edits take effect only after
+`/vibezombie off` then `on` (a running session doesn't hot-reload).
 
 > I built this because I caught myself becoming the zombie — accepting diffs I couldn't have written, on
 > a codebase I was supposed to know. It's opt-in, it's honest about when a decision is trivial, and the log

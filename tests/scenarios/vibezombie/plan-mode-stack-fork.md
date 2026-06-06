@@ -4,6 +4,9 @@
 > "build a WhatsApp-like app" plan presented a **fully pre-decided stack** ("Next.js — Key reason:
 > Portfolio-standard", Node+Express, Postgres+Prisma…) and relegated forks to "vibezombie will surface them
 > during build". The stack is the highest-stakes L1 fork — it must be forked DURING planning, not assumed.
+>
+> **Now hook-enforced:** `vibezombie-plan-gate.sh` blocks `ExitPlanMode` until a `## FORK` (or an explicit
+> `## NO-FORK: <reason>`) is logged after this session's marker — so the deferral below cannot reach a plan.
 
 ## setup
 
