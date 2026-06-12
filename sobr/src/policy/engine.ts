@@ -17,11 +17,14 @@ export interface PolicyRule {
 export class PolicyEngine {
   constructor(private rules: PolicyRule[] = []) {}
 
+  /** Deny wins over warn regardless of rule order; first warn is kept otherwise. */
   check(call: ToolCall): Verdict {
+    let warn: Verdict | null = null;
     for (const rule of this.rules) {
       const verdict = rule.check(call);
-      if (verdict.kind !== "allow") return verdict;
+      if (verdict.kind === "deny") return verdict;
+      if (verdict.kind === "warn" && !warn) warn = verdict;
     }
-    return { kind: "allow" };
+    return warn ?? { kind: "allow" };
   }
 }

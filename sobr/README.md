@@ -2,7 +2,7 @@
 
 **The coding agent that refuses to let you vibecode.** A teaching-first, glass-box agent runtime over the Claude API — own loop, typed tools, policy engine, and (week 3) a teach mode that makes you pick at every real decision fork.
 
-> Status: **week 1 of 4** — core runtime (loop, tools, provider+caching, permissions). See `../plan.md` for the full v1 spec and `../phases/` for live progress tracking.
+> Status: **week 2 of 4** — core runtime + glass-box trace, policy engine, sessions/replay/why, multi-provider. See `../plan.md` for the full v1 spec and `../phases/` for live progress tracking.
 
 ## Run it
 
@@ -12,9 +12,14 @@ export ANTHROPIC_API_KEY=sk-ant-...
 
 bun run src/cli.ts                    # REPL in the current directory
 bun run src/cli.ts -p "add a test"    # one-shot
+bun run src/cli.ts sessions           # list recorded sessions
+bun run src/cli.ts replay <id>        # re-render a session (same renderer as live)
+bun run src/cli.ts why <id>:<turn>    # full model context + decisions for a turn
 ```
 
 Slash commands in the REPL: `/help`, `/cost`, `/exit`.
+
+Every session is traced to `~/.sobr/sessions/<id>/trace.jsonl` — full request context per API call (that's what makes `why` trivially correct). Builtin policy: secret-scan (deny), dangerous-command (deny), conventional-commit (deny), dependency-audit (warn), git-status advisory at startup.
 
 Mutating tools (write/edit/bash) prompt before running: `y` once · `a` always this tool · `p` always this bash prefix · `n` deny. Grants last for the session only.
 
@@ -45,7 +50,8 @@ Set `provider: "openai"` plus the base URL and key env var:
 
 ```sh
 bun run typecheck   # tsc --noEmit
-bun test            # 58 tests; loop tests run on FakeAnthropic + SSE fixtures
+bun test            # 107 tests; loop tests run on FakeAnthropic + SSE fixtures,
+                    # policy table tests load the original hook fixtures from ../tests/fixtures
 bun run scripts/record-sse.ts   # record real stream events as fixtures (needs API key)
 ```
 
