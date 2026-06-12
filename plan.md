@@ -1,4 +1,4 @@
-# forkpoint — a teaching-first, glass-box AI coding-agent harness
+# sobr — a teaching-first, glass-box AI coding-agent harness
 
 ## Context
 
@@ -7,7 +7,7 @@ protos-harness today is a Claude Code *config pack* (11 bash hooks, 24 skills, f
 - **Direction:** greenfield TypeScript + Bun runtime; this repo becomes the spec, not the codebase.
 - **Wedge (why anyone stars it):** all three pillars, **teaching leads** — "the coding agent that refuses to let you vibecode." Glass-box trace + policy engine support it.
 - **Runway:** ~4 weeks part-time to a demo-able, npm-installable v1; then apply while iterating publicly.
-- **Name:** `forkpoint` (verify npm availability at kickoff; fallbacks: `crossfork`, `socratic`). vibezombie stays as the teach-mode brand. New GitHub repo; protos-harness stays up with a link.
+- **Name:** `sobr` — the agent that codes sober instead of vibe coding. (npm: `sobr` is taken; publish as `sobr-cli` or a scoped package — decide at week-4 kickoff.) vibezombie stays as the teach-mode brand. Built in `sobr/` inside protos-harness for now; can be split to its own repo later.
 
 Why owning the loop matters: vibezombie currently fights Claude Code from outside (bash hooks, regex on text, session tempfiles — 3 releases spent on leaks/scoping bugs). In-runtime, the fork is a tool call the loop controls; the entire hook layer collapses into typed validators.
 
@@ -32,7 +32,7 @@ src/
   permission/gate.ts               # allow/ask/deny + in-memory session grants
   policy/engine.ts + rules/        # PolicyRule → Verdict{allow|warn|deny}; deny = is_error tool_result
   teach/   state fork-tool neutrality profile prompt
-  trace/   events writer replay why cost   # JSONL, ~/.forkpoint/sessions/<id>/
+  trace/   events writer replay why cost   # JSONL, ~/.sobr/sessions/<id>/
   session/store.ts  config/config.ts  ui/{render,prompt,status}
 test/ unit/  loop/ (FakeAnthropic + recorded SSE fixtures)  fixtures/
 ```
@@ -55,16 +55,16 @@ Two tools injected only when teach is on:
 
 **Validators (pure, pre-render):** neutrality regexes (ported verbatim); 2–4 options; mastered concept → reject "call trivial"; stakes below active level → reject. Mastered-suppression becomes deterministic code, not a behavioral hope.
 
-**Profile:** `~/.forkpoint/teach/profile.json` — 3 confident picks → mastered; plus human-readable `teach/log.md` in the existing SKILL.md FORK/TRIVIAL format (proven demo artifact).
+**Profile:** `~/.sobr/teach/profile.json` — 3 confident picks → mastered; plus human-readable `teach/log.md` in the existing SKILL.md FORK/TRIVIAL format (proven demo artifact).
 
 v1: fork/trivial, gate, validators, Reveal+Hard, L1–L3, pick-count promotion, `/teach on L2 [hard]|off|profile`.
 Deferred: model-graded mastery, ramping, plan-mode gate, chaining limits as code.
 
 ### Trace (glass-box)
-JSONL per session; event union incl. `api_request` (**full messages array — deliberate redundancy; makes `why` trivially correct, do not optimize in v1**), `api_response{usage,costUsd}`, `tool_call/result{digest,sha256}`, `policy_verdict`, `perm_decision`, `teach_gate`, `fork_surfaced/rejected/resolved`, `trivial_logged`, `compaction`. Commands: `forkpoint sessions | replay <id> | why <id>:<turn>`; `/cost` in-REPL. Replay pumps events through the **same live renderer** (keeps it honest; forces render purity early).
+JSONL per session; event union incl. `api_request` (**full messages array — deliberate redundancy; makes `why` trivially correct, do not optimize in v1**), `api_response{usage,costUsd}`, `tool_call/result{digest,sha256}`, `policy_verdict`, `perm_decision`, `teach_gate`, `fork_surfaced/rejected/resolved`, `trivial_logged`, `compaction`. Commands: `sobr sessions | replay <id> | why <id>:<turn>`; `/cost` in-REPL. Replay pumps events through the **same live renderer** (keeps it honest; forces render purity early).
 
 ### Policy v1
-Builtins ported: secret-scan (deny), dangerous-command (deny), conventional-commit (deny), dependency-audit (warn, no subprocess), git-status session advisory (warn). vibezombie hooks → absorbed into teach. auto-lint/test-impact → post-v1 (post-tool actions, different mechanism). Config: JSON only — `~/.forkpoint/config.json` + project `.forkpoint.json`; `custom` regex rules cover the hook-style cases; fail loud on unknown keys.
+Builtins ported: secret-scan (deny), dangerous-command (deny), conventional-commit (deny), dependency-audit (warn, no subprocess), git-status session advisory (warn). vibezombie hooks → absorbed into teach. auto-lint/test-impact → post-v1 (post-tool actions, different mechanism). Config: JSON only — `~/.sobr/config.json` + project `.sobr.json`; `custom` regex rules cover the hook-style cases; fail loud on unknown keys.
 
 ## 4-week milestones (each ends demo-able)
 
@@ -73,7 +73,7 @@ Builtins ported: secret-scan (deny), dangerous-command (deny), conventional-comm
 | 1 | Scaffold, provider+caching, tools, dispatch, permissions, renderer/status | "add a function + test" works on a real repo | Streamed tool_use accumulation / multi-call turns → build FakeAnthropic + record real SSE fixtures **this week** |
 | 2 | Trace wired everywhere; sessions/replay/why//cost; policy engine + 5 rules; unit tests from ported fixtures | Agent writes AWS key → deny → model rewords; `why` the turn | Replay reusing live renderer → budget one evening for render-purity refactor |
 | 3 | fork/trivial, gate, validators, profile, /teach, Hard mode; teach prompt from SKILL.md + holistic handoff | `/teach on L2 hard` → stock-trading stack fork → pick → justification → map → gated edit; session 2 suppresses mastered | Model calling fork before writes → gate error doubles as recovery prompt (proven pattern); weekend reserved for prompt iteration vs rubrics |
-| 4 | Compaction warn + /compact; resume from trace; npm publish + compiled binaries; README/CHANGELOG/CI/asciinema ×3 | `npx forkpoint` on a clean machine | Packaging friction → npm dry-run on **day 1** of week 4 |
+| 4 | Compaction warn + /compact; resume from trace; npm publish + compiled binaries; README/CHANGELOG/CI/asciinema ×3 | `npx sobr` on a clean machine | Packaging friction → npm dry-run on **day 1** of week 4 |
 
 Post-v1 (public roadmap): Ink TUI, auto-compaction, persisted allowlist, JS policy modules, post-tool actions, model-graded mastery, plan mode, MCP, subagents, multi-provider, eval automation, Windows.
 
@@ -86,11 +86,11 @@ Post-v1 (public roadmap): Ink TUI, auto-compaction, persisted allowlist, JS poli
 
 ## Launch (week 4)
 
-README: hero GIF (fork firing) → pitch → 3-line `npx` quickstart → three pillars each with terminal excerpt → honest comparison vs aider/pi/opencode ("they optimize output; forkpoint optimizes what you learn and can audit") → ASCII dispatch-pipeline diagram → public roadmap. Day-1 credibility: green CI badge, real CHANGELOG 0.1.0, MIT, tagged release w/ binaries, 3–5 pre-filed good-first-issues, scenario rubrics visible in-repo. Asciinema ×3: plain fix-a-test, teach headline, `why` glass-box.
+README: hero GIF (fork firing) → pitch → 3-line `npx` quickstart → three pillars each with terminal excerpt → honest comparison vs aider/pi/opencode ("they optimize output; sobr optimizes what you learn and can audit") → ASCII dispatch-pipeline diagram → public roadmap. Day-1 credibility: green CI badge, real CHANGELOG 0.1.0, MIT, tagged release w/ binaries, 3–5 pre-filed good-first-issues, scenario rubrics visible in-repo. Asciinema ×3: plain fix-a-test, teach headline, `why` glass-box.
 
 ## Verification
 
 - W1: live run against a scratch repo — multi-tool turn edits files; loop tests green.
 - W2: `bun test` all ported fixtures; live policy-deny demo; `replay`/`why` on a real session.
 - W3: run `stock-trading-stack.md`, `trivial-no-fork.md`, `mastered-suppression.md` rubrics live — all PASS criteria met.
-- W4: `npx forkpoint` from a clean machine/user; CI green on both OSes; all three asciinema recordings reproduce.
+- W4: `npx sobr` from a clean machine/user; CI green on both OSes; all three asciinema recordings reproduce.
