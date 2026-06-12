@@ -1,11 +1,13 @@
 import * as readline from "node:readline/promises";
 import { Agent } from "./loop/agent.ts";
 import { AnthropicProvider } from "./provider/anthropic.ts";
+import { OpenAICompatProvider } from "./provider/openai.ts";
+import type { Provider } from "./provider/types.ts";
 import { defaultRegistry } from "./tools/registry.ts";
 import { PermissionGate } from "./permission/gate.ts";
 import { PolicyEngine } from "./policy/engine.ts";
 import { TeachOffGate } from "./teach/gate.ts";
-import { loadConfig } from "./config/config.ts";
+import { loadConfig, resolveApiKey, type SobrConfig } from "./config/config.ts";
 import { SYSTEM_PROMPT } from "./prompt.ts";
 import { render } from "./ui/render.ts";
 import { renderStatus } from "./ui/status.ts";
@@ -17,15 +19,21 @@ const HELP = `slash commands:
   /exit   quit
 (/teach, /compact, /cost-detail land in later weeks — see phases/)`;
 
-export async function buildAgent(cwd: string, rl: readline.Interface): Promise<Agent> {
-  const config = await loadConfig(cwd);
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) {
-    console.error("ANTHROPIC_API_KEY is not set.");
+export function makeProvider(config: SobrConfig): Provider {
+  const { name, key } = resolveApiKey(config);
+  if (!key) {
+    console.error(`${name} is not set (provider "${config.provider}"). Set it, or point apiKeyEnv at another env var in .sobr.json.`);
     process.exit(1);
   }
+  return config.provider === "openai"
+    ? new OpenAICompatProvider({ apiKey: key, baseUrl: config.baseUrl })
+    : new AnthropicProvider({ apiKey: key });
+}
+
+export async function buildAgent(cwd: string, rl: readline.Interface): Promise<Agent> {
+  const config = await loadConfig(cwd);
   return new Agent({
-    provider: new AnthropicProvider({ apiKey }),
+    provider: makeProvider(config),
     config,
     system: SYSTEM_PROMPT,
     dispatch: {

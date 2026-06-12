@@ -26,6 +26,21 @@ Mutating tools (write/edit/bash) prompt before running: `y` once · `a` always t
 { "model": "claude-sonnet-4-6", "maxTokens": 8192 }
 ```
 
+### Other providers (GPT, DeepSeek, anything OpenAI-compatible)
+
+Set `provider: "openai"` plus the base URL and key env var:
+
+```json
+{ "provider": "openai", "model": "deepseek-chat",
+  "baseUrl": "https://api.deepseek.com/v1", "apiKeyEnv": "DEEPSEEK_API_KEY" }
+```
+
+```json
+{ "provider": "openai", "model": "gpt-4o" }
+```
+
+(`baseUrl` defaults to api.openai.com; `apiKeyEnv` defaults to `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` by provider.) Anthropic prompt-cache breakpoints don't apply on these providers — their automatic caching is mapped onto the same `cache_read` status figure.
+
 ## Develop
 
 ```sh

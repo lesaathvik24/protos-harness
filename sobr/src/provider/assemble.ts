@@ -78,7 +78,13 @@ export async function assemble(
       }
       case "message_delta": {
         if (ev.delta.stop_reason) stopReason = ev.delta.stop_reason;
+        // Anthropic sends input/cache usage on message_start and output on
+        // message_delta; OpenAI-compatible providers send everything at the end.
+        // Absorb whatever arrives here.
         if (ev.usage?.output_tokens != null) usage.outputTokens = ev.usage.output_tokens;
+        if (ev.usage?.input_tokens != null) usage.inputTokens = ev.usage.input_tokens;
+        if (ev.usage?.cache_read_input_tokens != null) usage.cacheReadTokens = ev.usage.cache_read_input_tokens;
+        if (ev.usage?.cache_creation_input_tokens != null) usage.cacheWriteTokens = ev.usage.cache_creation_input_tokens;
         break;
       }
       case "message_stop":
