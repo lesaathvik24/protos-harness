@@ -36,7 +36,12 @@ export class Agent {
   costKnown = true;
   private turn = 0;
 
-  constructor(private deps: AgentDeps) {
+  /** Current turn number (teach trace events stamp this). */
+  get turnNumber(): number {
+    return this.turn;
+  }
+
+  constructor(public deps: AgentDeps) {
     // Pipeline stages report decisions via dispatch.onTrace; the agent stamps
     // turn/ts and forwards to the session trace (chaining any user hook).
     const userOnTrace = deps.dispatch.onTrace;

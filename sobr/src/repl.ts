@@ -7,21 +7,27 @@ import { defaultRegistry } from "./tools/registry.ts";
 import { PermissionGate } from "./permission/gate.ts";
 import { PolicyEngine } from "./policy/engine.ts";
 import { defaultRules, gitStatusAdvisory } from "./policy/rules/index.ts";
-import { TeachOffGate } from "./teach/gate.ts";
+import { TeachWriteGate } from "./teach/gate.ts";
+import { TeachController } from "./teach/controller.ts";
+import { ProfileStore } from "./teach/profile.ts";
+import { TeachSession } from "./teach/state.ts";
 import { loadConfig, resolveApiKey, type SobrConfig } from "./config/config.ts";
 import { SYSTEM_PROMPT } from "./prompt.ts";
 import { render } from "./ui/render.ts";
 import { renderStatus } from "./ui/status.ts";
-import { makeTerminalPrompter } from "./ui/prompt.ts";
+import { makeTerminalPrompter, makeTerminalTeachUi } from "./ui/prompt.ts";
 import { SessionStore, newSessionId } from "./session/store.ts";
 import { TraceWriter } from "./trace/writer.ts";
 import { fmtUsd } from "./trace/cost.ts";
 
 const HELP = `slash commands:
-  /help   show this help
-  /cost   show session token usage + cost
-  /exit   quit
-(/teach lands in week 3, /compact in week 4 — see phases/)`;
+  /help                       show this help
+  /cost                       show session token usage + cost
+  /teach on L1|L2|L3 [hard]   anti-vibecoding coach: fork at every real decision
+  /teach off                  back to plain agent
+  /teach profile              show the learner model
+  /exit                       quit
+(/compact lands in week 4 — see phases/)`;
 
 export function makeProvider(config: SobrConfig): Provider {
   const { name, key } = resolveApiKey(config);
@@ -39,6 +45,7 @@ export interface Session {
   config: SobrConfig;
   sessionId: string;
   writer: TraceWriter;
+  teach: TeachController;
 }
 
 export async function buildSession(cwd: string, rl: readline.Interface): Promise<Session> {
@@ -63,6 +70,8 @@ export async function buildSession(cwd: string, rl: readline.Interface): Promise
     provider: config.provider,
   });
 
+  // One shared TeachSession: the gate reads it (off by default), /teach arms it.
+  const teachSession = new TeachSession();
   const agent = new Agent({
     provider: makeProvider(config),
     config,
@@ -71,14 +80,17 @@ export async function buildSession(cwd: string, rl: readline.Interface): Promise
     dispatch: {
       registry: defaultRegistry(),
       policy: new PolicyEngine(defaultRules()),
-      teachGate: new TeachOffGate(),
+      teachGate: new TeachWriteGate(teachSession),
       permission: new PermissionGate(makeTerminalPrompter(rl)),
       ctx: { cwd },
       onWarn: (rule, message) => process.stdout.write(`\x1b[33m⚠ [${rule}] ${message}\x1b[0m\n`),
     },
     onUiEvent: (ev) => process.stdout.write(render(ev)),
   });
-  return { agent, config, sessionId, writer };
+  const teach = new TeachController(agent, new ProfileStore(), makeTerminalTeachUi(rl), teachSession, (ev) =>
+    writer.emit({ ...ev, ts: new Date().toISOString(), turn: agent.turnNumber }),
+  );
+  return { agent, config, sessionId, writer, teach };
 }
 
 function costLine(session: Session): string {
@@ -104,6 +116,10 @@ export async function runRepl(cwd: string): Promise<void> {
     }
     if (line === "/cost") {
       console.log(costLine(session));
+      continue;
+    }
+    if (line === "/teach" || line.startsWith("/teach ")) {
+      console.log(await session.teach.handle(line.slice("/teach".length)));
       continue;
     }
     if (line.startsWith("/")) {

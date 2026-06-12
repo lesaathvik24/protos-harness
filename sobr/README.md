@@ -2,7 +2,7 @@
 
 **The coding agent that refuses to let you vibecode.** A teaching-first, glass-box agent runtime over the Claude API — own loop, typed tools, policy engine, and (week 3) a teach mode that makes you pick at every real decision fork.
 
-> Status: **week 2 of 4** — core runtime + glass-box trace, policy engine, sessions/replay/why, multi-provider. See `../plan.md` for the full v1 spec and `../phases/` for live progress tracking.
+> Status: **week 3 of 4** — core runtime, glass-box trace, policy engine, sessions/replay/why, multi-provider, and the headline: **teach mode**. See `../plan.md` for the full v1 spec and `../phases/` for live progress tracking.
 
 ## Run it
 
@@ -17,7 +17,11 @@ bun run src/cli.ts replay <id>        # re-render a session (same renderer as li
 bun run src/cli.ts why <id>:<turn>    # full model context + decisions for a turn
 ```
 
-Slash commands in the REPL: `/help`, `/cost`, `/exit`.
+Slash commands in the REPL: `/help`, `/cost`, `/teach on L1|L2|L3 [hard]`, `/teach off`, `/teach profile`, `/exit`.
+
+## Teach mode (the headline)
+
+`/teach on L2 hard` turns sobr into an anti-vibecoding coach. At every real technical decision the model must call the `fork` tool — the runtime renders 2–4 **neutral** options (career/popularity framing is rejected by ported validators), **blocks until you pick**, and in hard mode asks you to type *why* before the reveal. Non-decisions go through `trivial` (≤5-word reason). A one-shot write gate makes this unskippable: any write/edit without a prior fork/trivial returns `GATED: classify first`. Your picks build a cross-session learner profile (`~/.sobr/teach/profile.json` + human-readable `log.md`) — 3 confident picks master a concept and the runtime then *refuses* to re-fork it. Scenario rubrics for live verification live in `test/scenarios/`.
 
 Every session is traced to `~/.sobr/sessions/<id>/trace.jsonl` — full request context per API call (that's what makes `why` trivially correct). Builtin policy: secret-scan (deny), dangerous-command (deny), conventional-commit (deny), dependency-audit (warn), git-status advisory at startup.
 
@@ -50,8 +54,8 @@ Set `provider: "openai"` plus the base URL and key env var:
 
 ```sh
 bun run typecheck   # tsc --noEmit
-bun test            # 107 tests; loop tests run on FakeAnthropic + SSE fixtures,
-                    # policy table tests load the original hook fixtures from ../tests/fixtures
+bun test            # 151 tests; loop tests run on FakeAnthropic + SSE fixtures,
+                    # policy/neutrality table tests load the original hook fixtures from ../tests/fixtures
 bun run scripts/record-sse.ts   # record real stream events as fixtures (needs API key)
 ```
 
