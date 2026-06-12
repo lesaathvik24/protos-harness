@@ -58,9 +58,14 @@ export const editTool: ToolDef<EditInput> = {
         isError: true,
       };
     }
+    // Index splice, NOT String.replace — a regex-free replacement so `$`
+    // sequences ($$, $&, $1, …) in new_string are inserted literally.
     const updated = input.replace_all
       ? text.split(input.old_string).join(input.new_string)
-      : text.replace(input.old_string, input.new_string);
+      : (() => {
+          const at = text.indexOf(input.old_string);
+          return text.slice(0, at) + input.new_string + text.slice(at + input.old_string.length);
+        })();
     await Bun.write(path, updated);
     return { content: `Replaced ${input.replace_all ? n : 1} occurrence(s) in ${path}` };
   },

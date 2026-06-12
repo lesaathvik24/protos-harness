@@ -11,6 +11,18 @@ A Claude Code harness for developers who want guardrails, not training wheels. S
 
 ---
 
+## 🚧 `sobr/` — the standalone agent runtime (in progress)
+
+This harness is also the spec for **[`sobr`](sobr/)** — a from-scratch, glass-box AI coding-agent
+runtime (TypeScript + Bun) that owns its own loop over the Claude API (and any OpenAI-compatible API
+like GPT or DeepSeek). It absorbs the hook layer into typed validators and turns `vibezombie` into an
+in-runtime **teach mode**: `fork`/`trivial` tools, an unskippable write gate, and a cross-session
+learner profile. Weeks 1–3 of 4 are built (core loop, glass-box trace + policy engine, teach mode);
+162 tests, `tsc` clean. See [`sobr/README.md`](sobr/README.md), the spec in [`plan.md`](plan.md), and
+phase-by-phase progress in [`phases/`](phases/).
+
+---
+
 ## `vibezombie` — your AI is quietly making you a worse developer
 
 > Vibecoding makes you a zombie. This skill makes you choose.

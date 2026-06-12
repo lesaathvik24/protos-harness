@@ -47,6 +47,18 @@ describe("edit tool", () => {
     expect(await Bun.file(join(dir, "a.txt")).text()).toBe("z y z y z");
   });
 
+  test("inserts $-sequences in the replacement literally (no String.replace pattern eval)", async () => {
+    await seed("a.js", "const p = AMOUNT;");
+    await editTool.run({ path: "a.js", old_string: "AMOUNT", new_string: "`$${amount}`" }, ctx());
+    expect(await Bun.file(join(dir, "a.js")).text()).toBe("const p = `$${amount}`;");
+  });
+
+  test("$& and $1 in replacement are not treated as match references", async () => {
+    await seed("b.txt", "X");
+    await editTool.run({ path: "b.txt", old_string: "X", new_string: "$& and $1" }, ctx());
+    expect(await Bun.file(join(dir, "b.txt")).text()).toBe("$& and $1");
+  });
+
   test("fails on missing file", async () => {
     const out = await editTool.run({ path: "missing.txt", old_string: "a", new_string: "b" }, ctx());
     expect(out.isError).toBe(true);

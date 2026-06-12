@@ -1,5 +1,5 @@
 #!/usr/bin/env bun
-import { runRepl, runOneShot } from "./repl.ts";
+import { runRepl, runOneShot, MissingApiKeyError } from "./repl.ts";
 import { SessionStore } from "./session/store.ts";
 import { renderReplay } from "./trace/replay.ts";
 import { whyTurn } from "./trace/why.ts";
@@ -96,6 +96,8 @@ async function main() {
 }
 
 main().catch((e) => {
-  console.error(`fatal: ${(e as Error).message}`);
+  // A missing API key is a user-config problem, not a crash — print it plainly.
+  const prefix = e instanceof MissingApiKeyError ? "" : "fatal: ";
+  console.error(`${prefix}${(e as Error).message}`);
   process.exit(1);
 });

@@ -51,6 +51,21 @@ export function renderReplay(events: TraceEvent[]): string {
         if (ev.kind === "warn") out += `⚠ [${ev.rule}] ${ev.message}\n`;
         if (ev.kind === "deny") out += `⛔ [${ev.rule}] ${ev.message}\n`;
         break;
+      case "fork_surfaced":
+        out += `⑂ FORK ${ev.payload.decision ?? ""}` + (ev.payload.options ? ` — options: ${(ev.payload.options as string[]).join(" | ")}` : "") + "\n";
+        break;
+      case "fork_resolved":
+        out += `  ✓ chose: ${ev.payload.pick ?? "?"}` + (ev.payload.justification ? ` — "${ev.payload.justification}"` : "") + (ev.payload.promoted ? " (mastered)" : "") + "\n";
+        break;
+      case "fork_rejected":
+        out += `  ✗ fork rejected: ${ev.payload.reason ?? ""}\n`;
+        break;
+      case "trivial_logged":
+        out += `· trivial: ${ev.payload.reason ?? ""}\n`;
+        break;
+      case "turn_aborted":
+        out += `⨯ turn aborted (iteration ${ev.iteration})\n\n`;
+        break;
       case "turn_end":
         out += render({ type: "turn_end", usage: ev.usage });
         out += renderStatus(model, ev.usage) + ` cost ${fmtUsd(ev.costUsd)}\n\n`;

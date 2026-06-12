@@ -117,6 +117,7 @@ export async function* normalizeChunks(chunks: AsyncIterable<OpenAIChunk> | Iter
       yield { type: "message_start", message: { id: chunk.id ?? "openai", model: chunk.model ?? "" } };
     }
     if (chunk.usage) usage = chunk.usage;
+    // We request n=1 implicitly (chat default); only choices[0] is consumed.
     const choice = chunk.choices?.[0];
     if (!choice) continue;
     const delta = choice.delta;
@@ -165,7 +166,19 @@ export async function* normalizeChunks(chunks: AsyncIterable<OpenAIChunk> | Iter
   yield { type: "message_stop" };
 }
 
-/** Parse an SSE byte stream into OpenAI chunks. */
+/**
+ * Parse an SSE byte stream into OpenAI chunks. Returns the parsed chunk for a
+ * `data:` line, `"done"` for the `[DONE]` sentinel, or null for anything else.
+ */
+function parseLine(line: string): OpenAIChunk | "done" | null {
+  const trimmed = line.trim();
+  if (!trimmed.startsWith("data:")) return null;
+  const data = trimmed.slice(5).trim();
+  if (data === "") return null;
+  if (data === "[DONE]") return "done";
+  return JSON.parse(data) as OpenAIChunk;
+}
+
 export async function* parseSSE(body: ReadableStream<Uint8Array>): AsyncIterable<OpenAIChunk> {
   const decoder = new TextDecoder();
   let buffer = "";
@@ -174,16 +187,18 @@ export async function* parseSSE(body: ReadableStream<Uint8Array>): AsyncIterable
     const { done, value } = await reader.read();
     if (done) break;
     buffer += decoder.decode(value, { stream: true });
-    const lines = buffer.split("\n");
-    buffer = lines.pop()!;
+    const lines = buffer.split(/\r?\n/);
+    buffer = lines.pop()!; // last (possibly partial) line stays buffered
     for (const line of lines) {
-      const trimmed = line.trim();
-      if (!trimmed.startsWith("data:")) continue;
-      const data = trimmed.slice(5).trim();
-      if (data === "[DONE]") return;
-      yield JSON.parse(data);
+      const parsed = parseLine(line);
+      if (parsed === "done") return;
+      if (parsed) yield parsed;
     }
   }
+  // Flush the trailing line that arrived without a final newline — otherwise the
+  // last event (often message_delta with stop_reason + usage) is silently lost.
+  const tail = parseLine(buffer);
+  if (tail && tail !== "done") yield tail;
 }
 
 export class OpenAICompatProvider implements Provider {

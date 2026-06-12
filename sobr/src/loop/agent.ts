@@ -41,15 +41,18 @@ export class Agent {
     return this.turn;
   }
 
+  /** Any caller-supplied dispatch trace hook, captured so we don't mutate the shared deps. */
+  private readonly userOnTrace?: DispatchDeps["onTrace"];
+
   constructor(public deps: AgentDeps) {
-    // Pipeline stages report decisions via dispatch.onTrace; the agent stamps
-    // turn/ts and forwards to the session trace (chaining any user hook).
-    const userOnTrace = deps.dispatch.onTrace;
-    deps.dispatch.onTrace = (ev) => {
-      userOnTrace?.(ev);
-      this.trace(ev);
-    };
+    this.userOnTrace = deps.dispatch.onTrace;
   }
+
+  /** Pipeline-stage trace: forward to the caller hook, then stamp + emit to the session trace. */
+  private dispatchOnTrace = (ev: Parameters<NonNullable<DispatchDeps["onTrace"]>>[0]) => {
+    this.userOnTrace?.(ev);
+    this.trace(ev);
+  };
 
   private emit(ev: UiEvent) {
     this.deps.onUiEvent?.(ev);
@@ -94,7 +97,12 @@ export class Agent {
       try {
         message = await assemble(this.deps.provider.stream(request, signal), (ev) => this.onStreamEvent(ev));
       } catch (e) {
-        if (signal?.aborted) return; // discard partial message
+        if (signal?.aborted) {
+          // Discard the partial assistant message, but mark the trace so the
+          // api_request just emitted isn't an orphan with no response.
+          this.trace({ type: "turn_aborted", iteration: i });
+          return;
+        }
         throw e;
       }
 
@@ -124,7 +132,9 @@ export class Agent {
       for (const call of calls) {
         this.emit({ type: "tool_call", id: call.id, name: call.name, input: call.input });
         this.trace({ type: "tool_call", id: call.id, name: call.name, input: call.input });
-        const result = await dispatchToolCall(call, this.deps.dispatch);
+        // Spread reads the CURRENT dispatch (registry swaps from /teach still apply)
+        // while overriding onTrace locally — no mutation of the shared deps object.
+        const result = await dispatchToolCall(call, { ...this.deps.dispatch, onTrace: this.dispatchOnTrace });
         this.emit({
           type: "tool_result",
           id: call.id,

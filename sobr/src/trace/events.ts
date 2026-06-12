@@ -42,6 +42,7 @@ export type TraceEvent = TraceBase &
     | { type: "teach_gate"; id: string; name: string; allowed: boolean; message?: string }
     | { type: "perm_decision"; id: string; name: string; behavior: "allow" | "deny"; reason: string }
     | { type: "turn_end"; usage: Usage; costUsd: number }
+    | { type: "turn_aborted"; iteration: number }
     // week 3
     | { type: "fork_surfaced"; payload: Record<string, unknown> }
     | { type: "fork_rejected"; payload: Record<string, unknown> }

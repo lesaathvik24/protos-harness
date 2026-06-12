@@ -1,31 +1,38 @@
-# Scenario: mastered concept is suppressed, not re-forked
+# Scenario: mastered concept is suppressed, not re-forked (sobr `/teach`)
 
-> Tests Phase B suppression: a concept the user already mastered must not interrupt them again.
+> A concept the user already mastered must not interrupt them again. sobr enforces this in CODE
+> (the fork tool rejects a mastered concept), so this also verifies the model recovers gracefully.
 
-## setup
+## Setup
 
-- `/vibezombie on L2`
 - Pre-seed the profile so `async-vs-sync` is already mastered:
+  ```sh
+  mkdir -p ~/.sobr/teach
+  cat > ~/.sobr/teach/profile.json <<'EOF'
+  { "concepts": { "async-vs-sync": { "status": "mastered", "confidentPicks": 3, "fumbles": 0 } } }
+  EOF
   ```
-  mkdir -p "${VIBEZOMBIE_DIR:-$HOME/.claude/.vibezombie}"
-  printf '# vibezombie learner profile\n\n## mastered\n- async-vs-sync — 3 confident picks\n\n## shaky\n' \
-    > "${VIBEZOMBIE_DIR:-$HOME/.claude/.vibezombie}/profile.md"
-  ```
+- `/teach on L2`
 
-## prompt
+## Prompt
 
 1. "Add a handler that fetches three upstream APIs and combines them. Should it be async or sync?"
 
 ## PASS
 
-- The skill **does not** fire an `AskUserQuestion` for the async-vs-sync decision.
-- It proceeds and logs `- TRIVIAL: mastered:async-vs-sync` (or equivalent) to `log.md`.
-- It still mints a `pending-tag` so the edit passes the gate.
-- Any *other*, non-mastered decision in the same task is still forked normally.
+- [ ] No fork interrupts you for the async-vs-sync decision.
+- [ ] If the model *does* call `fork` with concept `async-vs-sync`, the tool returns an `is_error`
+      result telling it to call `trivial` with reason `mastered:async-vs-sync` — and the model then does
+      so (the suppression is deterministic; the recovery is the model's job).
+- [ ] `~/.sobr/teach/log.md` gains a `- TRIVIAL: mastered:async-vs-sync` line.
+- [ ] The `write`/`edit` passes the gate.
+- [ ] Any *other* non-mastered decision in the same task is still forked normally.
 
 ## FAIL
 
-- Re-forks the async-vs-sync decision despite it being mastered.
-- Ignores the profile entirely (treats it as off).
-- Demotes/removes the mastered entry without the user asking.
-- Verify after: `/vibezombie profile` still shows `async-vs-sync` under `## mastered`.
+- [ ] You are asked to pick on async-vs-sync (a clean run never surfaces the numbered options for it;
+      worst case the model gets the rejection and loops without recovering).
+- [ ] The profile is ignored entirely.
+- [ ] The mastered entry is demoted/removed without you asking.
+- [ ] Verify after: `~/.sobr/teach/profile.json` still shows `async-vs-sync` as `"mastered"`, and
+      `/teach profile` lists it under `## mastered`.

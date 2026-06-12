@@ -68,4 +68,20 @@ describe("learner profile (pick-count promotion — deterministic code, not beha
     const store = new ProfileStore(dir);
     expect(store.render(await store.load())).toContain("empty");
   });
+
+  test("concurrent recordPick calls do not lose updates (serialized)", async () => {
+    const store = new ProfileStore(dir);
+    // fire 5 picks for the same concept without awaiting between them
+    await Promise.all(Array.from({ length: 5 }, () => store.recordPick("race-concept")));
+    const profile = await store.load();
+    expect(profile.concepts["race-concept"]!.confidentPicks).toBe(5); // not <5 from clobbering
+    expect(profile.concepts["race-concept"]!.status).toBe("mastered");
+  });
+
+  test("concurrent appendLog calls all land", async () => {
+    const store = new ProfileStore(dir);
+    await Promise.all(Array.from({ length: 4 }, (_, i) => store.appendLog(`- TRIVIAL: r${i}\n`)));
+    const log = await Bun.file(join(dir, "log.md")).text();
+    for (let i = 0; i < 4; i++) expect(log).toContain(`- TRIVIAL: r${i}`);
+  });
 });

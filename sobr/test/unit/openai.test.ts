@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { toOpenAIRequest, normalizeChunks, type OpenAIChunk } from "../../src/provider/openai.ts";
+import { toOpenAIRequest, normalizeChunks, parseSSE, type OpenAIChunk } from "../../src/provider/openai.ts";
 import { assemble } from "../../src/provider/assemble.ts";
 import type { ProviderRequest } from "../../src/provider/types.ts";
 
@@ -46,6 +46,27 @@ describe("toOpenAIRequest (wire translation)", () => {
     });
     const toolMsg = req.messages[3];
     expect(toolMsg).toEqual({ role: "tool", tool_call_id: "t1", content: "ERROR: data" });
+  });
+});
+
+async function collect(body: string): Promise<string[]> {
+  const stream = new Response(body).body!;
+  const ids: string[] = [];
+  for await (const c of parseSSE(stream)) ids.push(c.id ?? "?");
+  return ids;
+}
+
+describe("parseSSE (raw byte stream)", () => {
+  test("flushes the final event when the stream has no trailing newline", async () => {
+    expect(await collect('data: {"id":"a","choices":[]}\ndata: {"id":"b","choices":[]}')).toEqual(["a", "b"]);
+  });
+
+  test("stops at [DONE] and ignores blank/non-data lines", async () => {
+    expect(await collect('data: {"id":"a","choices":[]}\n\n: comment\ndata: [DONE]\ndata: {"id":"z"}')).toEqual(["a"]);
+  });
+
+  test("handles CRLF line endings", async () => {
+    expect(await collect('data: {"id":"a","choices":[]}\r\ndata: {"id":"b","choices":[]}\r\n')).toEqual(["a", "b"]);
   });
 });
 

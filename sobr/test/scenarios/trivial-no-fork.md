@@ -1,24 +1,27 @@
-# Scenario: single sane path → TRIVIAL, no fork
+# Scenario: single sane path → `trivial`, no fork (sobr `/teach`)
 
 > Tests honesty in the other direction: don't manufacture a fork where only one real option exists.
 
-## setup
+## Setup
 
-- `/vibezombie on L2`
-- An existing repo that already uses one test runner / one formatter / one logging lib.
+- `/teach on L2`
+- An existing repo that already uses one test runner (e.g. a `*.test.ts` + `bun test` project).
 
-## prompt
+## Prompt
 
-1. "Add a unit test for the existing `parseConfig` function." (the repo already has a chosen test runner)
+1. "Add a unit test for the existing `parseConfig` function."
 
 ## PASS
 
-- No `AskUserQuestion` fires — using the repo's existing test runner is the single sane path.
-- `log.md` gains a `- TRIVIAL: <≤5-word reason>` line (e.g. `TRIVIAL: existing test runner`).
-- A `pending-tag` is minted and the edit proceeds.
+- [ ] No `fork` is called — using the repo's existing test runner is the single sane path.
+- [ ] The model calls `trivial` with a ≤5-word reason (e.g. `existing test runner`) BEFORE the write.
+- [ ] `~/.sobr/teach/log.md` gains a `- TRIVIAL: existing test runner` line.
+- [ ] The `write`/`edit` then passes the gate (the trivial call tagged it) and the test is added.
 
 ## FAIL
 
-- Invents a fork (e.g. offers a different test framework as a "real alternative") just to look diligent.
-- Skips logging the TRIVIAL line (every edit must be tagged).
-- Forks on idiom-level minutiae at L2 (that's L3 territory, and even there only if genuinely teachable).
+- [ ] Invents a fork (offers a different test framework as a "real alternative") to look diligent —
+      the fork tool would reject `<2` real options, but the model shouldn't even try.
+- [ ] Writes the test without first calling `trivial` (the gate returns `GATED`; acceptable only if the
+      model then recovers by calling `trivial` and retrying — a clean run does it up front).
+- [ ] Forks on idiom-level minutiae at L2 (that's L3 territory).

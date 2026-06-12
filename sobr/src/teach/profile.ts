@@ -26,7 +26,17 @@ export function teachRoot(home = homedir()): string {
 }
 
 export class ProfileStore {
+  // All mutations chain through this so concurrent recordPick/recordFumble/appendLog
+  // calls can't interleave their read-modify-write and clobber each other.
+  private writeChain: Promise<unknown> = Promise.resolve();
+
   constructor(public readonly dir: string = teachRoot()) {}
+
+  private serialize<T>(fn: () => Promise<T>): Promise<T> {
+    const next = this.writeChain.then(fn, fn);
+    this.writeChain = next.catch(() => {});
+    return next;
+  }
 
   private get profilePath() {
     return join(this.dir, "profile.json");
@@ -53,34 +63,40 @@ export class ProfileStore {
   }
 
   /** Returns the updated record; promotion to mastered happens here, deterministically. */
-  async recordPick(concept: string, weight = 1): Promise<ConceptRecord> {
-    const profile = await this.load();
-    const rec = profile.concepts[concept] ?? { status: "learning" as ConceptStatus, confidentPicks: 0, fumbles: 0 };
-    rec.confidentPicks += weight;
-    if (rec.status !== "mastered" && rec.confidentPicks >= MASTERY_THRESHOLD) rec.status = "mastered";
-    profile.concepts[concept] = rec;
-    await this.save(profile);
-    return { ...rec };
+  recordPick(concept: string, weight = 1): Promise<ConceptRecord> {
+    return this.serialize(async () => {
+      const profile = await this.load();
+      const rec = profile.concepts[concept] ?? { status: "learning" as ConceptStatus, confidentPicks: 0, fumbles: 0 };
+      rec.confidentPicks += weight;
+      if (rec.status !== "mastered" && rec.confidentPicks >= MASTERY_THRESHOLD) rec.status = "mastered";
+      profile.concepts[concept] = rec;
+      await this.save(profile);
+      return { ...rec };
+    });
   }
 
-  async recordFumble(concept: string): Promise<ConceptRecord> {
-    const profile = await this.load();
-    const rec = profile.concepts[concept] ?? { status: "learning" as ConceptStatus, confidentPicks: 0, fumbles: 0 };
-    rec.fumbles += 1;
-    rec.status = "shaky";
-    profile.concepts[concept] = rec;
-    await this.save(profile);
-    return { ...rec };
+  recordFumble(concept: string): Promise<ConceptRecord> {
+    return this.serialize(async () => {
+      const profile = await this.load();
+      const rec = profile.concepts[concept] ?? { status: "learning" as ConceptStatus, confidentPicks: 0, fumbles: 0 };
+      rec.fumbles += 1;
+      rec.status = "shaky";
+      profile.concepts[concept] = rec;
+      await this.save(profile);
+      return { ...rec };
+    });
   }
 
   /** Append to the human-readable decision log (SKILL.md format). */
-  async appendLog(text: string): Promise<void> {
-    await mkdir(this.dir, { recursive: true });
-    const logPath = join(this.dir, "log.md");
-    if (!(await Bun.file(logPath).exists())) {
-      await Bun.write(logPath, "# sobr teach decision log\n\n");
-    }
-    await appendFile(logPath, text);
+  appendLog(text: string): Promise<void> {
+    return this.serialize(async () => {
+      await mkdir(this.dir, { recursive: true });
+      const logPath = join(this.dir, "log.md");
+      if (!(await Bun.file(logPath).exists())) {
+        await Bun.write(logPath, "# sobr teach decision log\n\n");
+      }
+      await appendFile(logPath, text);
+    });
   }
 
   render(profile: Profile): string {

@@ -171,4 +171,56 @@ describe("replay + why over a real trace", () => {
     const trace = await recordedSession();
     expect(whyTurn(trace, 9)).toContain("Turns in this session: 1");
   });
+
+  test("replay renders teach fork events (not silently dropped)", () => {
+    const trace: TraceEvent[] = [
+      { type: "session_start", ts: "t", turn: 0, sessionId: "s", cwd: "/x", model: "claude-sonnet-4-6", provider: "anthropic" },
+      { type: "user_input", ts: "t", turn: 1, text: "build it" },
+      { type: "fork_surfaced", ts: "t", turn: 1, payload: { decision: "storage choice", options: ["SQLite", "JSON file"] } },
+      { type: "fork_resolved", ts: "t", turn: 1, payload: { pick: "SQLite", promoted: false } },
+      { type: "trivial_logged", ts: "t", turn: 1, payload: { reason: "single sane path" } },
+    ];
+    const out = renderReplay(trace);
+    expect(out).toContain("⑂ FORK storage choice");
+    expect(out).toContain("SQLite | JSON file");
+    expect(out).toContain("chose: SQLite");
+    expect(out).toContain("trivial: single sane path");
+  });
+});
+
+describe("aborted turn trace consistency", () => {
+  test("abort emits turn_aborted so api_request is not an orphan", async () => {
+    const cwd = await mkdtemp(join(tmpdir(), "sobr-abort-"));
+    const events: TraceEvent[] = [];
+    // Signal-aware provider: yields message_start, then throws once aborted.
+    const provider = {
+      async *stream(_req: unknown, signal?: AbortSignal) {
+        yield { type: "message_start", message: { id: "m", model: "claude-sonnet-4-6" } } as never;
+        await new Promise((r) => setTimeout(r, 30));
+        if (signal?.aborted) throw new DOMException("aborted", "AbortError");
+        yield { type: "message_stop" } as never;
+      },
+    };
+    const agent = new Agent({
+      provider: provider as never,
+      config: DEFAULT_CONFIG,
+      system: "s",
+      trace: { emit: (ev) => events.push(ev) },
+      dispatch: {
+        registry: defaultRegistry(),
+        policy: new PolicyEngine(),
+        teachGate: new TeachOffGate(),
+        permission: new PermissionGate(async () => "n"),
+        ctx: { cwd },
+      },
+    });
+    const controller = new AbortController();
+    const p = agent.runTurn("hang", controller.signal);
+    controller.abort();
+    await p;
+    const types = events.map((e) => e.type);
+    expect(types).toContain("api_request");
+    expect(types).toContain("turn_aborted");
+    expect(types).not.toContain("api_response"); // partial discarded
+  });
 });
