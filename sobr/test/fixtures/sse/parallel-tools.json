@@ -1,0 +1,12 @@
+[
+  { "type": "message_start", "message": { "id": "msg_par_1", "model": "claude-sonnet-4-6", "usage": { "input_tokens": 400, "cache_read_input_tokens": 250, "cache_creation_input_tokens": 60 } } },
+  { "type": "content_block_start", "index": 0, "content_block": { "type": "tool_use", "id": "toolu_glob_1", "name": "glob" } },
+  { "type": "content_block_delta", "index": 0, "delta": { "type": "input_json_delta", "partial_json": "{\"pattern\": \"**/*.ts\"}" } },
+  { "type": "content_block_stop", "index": 0 },
+  { "type": "content_block_start", "index": 1, "content_block": { "type": "tool_use", "id": "toolu_grep_1", "name": "grep" } },
+  { "type": "content_block_delta", "index": 1, "delta": { "type": "input_json_delta", "partial_json": "{\"pattern\": " } },
+  { "type": "content_block_delta", "index": 1, "delta": { "type": "input_json_delta", "partial_json": "\"TODO\"}" } },
+  { "type": "content_block_stop", "index": 1 },
+  { "type": "message_delta", "delta": { "stop_reason": "tool_use" }, "usage": { "output_tokens": 60 } },
+  { "type": "message_stop" }
+]
