@@ -1,0 +1,54 @@
+name: sobr-ci
+
+on:
+  push:
+    branches: [main]
+    paths: ["sobr/**", ".github/workflows/sobr-ci.yml"]
+  pull_request:
+    branches: [main]
+    paths: ["sobr/**", ".github/workflows/sobr-ci.yml"]
+
+defaults:
+  run:
+    working-directory: sobr
+
+jobs:
+  test:
+    name: typecheck + test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      - name: Typecheck
+        run: bun run typecheck
+      - name: Test
+        run: bun test
+        # No ANTHROPIC_API_KEY in CI — all tests run on FakeAnthropic / fixtures.
+
+  build:
+    name: compile binary (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    needs: test
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install --frozen-lockfile
+      - name: Build self-contained binary
+        run: bun run build
+      - name: Smoke-test the binary
+        run: ./dist/sobr --help

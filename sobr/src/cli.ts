@@ -1,5 +1,5 @@
 #!/usr/bin/env bun
-import { runRepl, runOneShot, MissingApiKeyError } from "./repl.ts";
+import { runRepl, runOneShot, runResume, MissingApiKeyError } from "./repl.ts";
 import { SessionStore } from "./session/store.ts";
 import { renderReplay } from "./trace/replay.ts";
 import { whyTurn } from "./trace/why.ts";
@@ -13,6 +13,7 @@ usage:
   sobr sessions        list recorded sessions
   sobr replay <id>     re-render a session through the live renderer
   sobr why <id>:<turn> show the full model context + decisions for a turn
+  sobr resume <id>     continue a prior session (rebuilds history from its trace)
   sobr --help          this help
 
 env: ANTHROPIC_API_KEY (or OPENAI_API_KEY / custom via apiKeyEnv — see README)`;
@@ -76,6 +77,13 @@ async function main() {
         process.exit(1);
       }
       await cmdWhy(args[1]);
+      return;
+    case "resume":
+      if (!args[1]) {
+        console.error("usage: sobr resume <session-id>");
+        process.exit(1);
+      }
+      await runResume(cwd, args[1]);
       return;
   }
   const pIdx = args.indexOf("-p");

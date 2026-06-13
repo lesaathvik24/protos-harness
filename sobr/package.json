@@ -3,15 +3,45 @@
   "version": "0.1.0-dev",
   "description": "sobr — the coding agent that refuses to let you vibecode. Teaching-first, glass-box agent runtime.",
   "license": "MIT",
+  "//name": "npm 'sobr' is taken — publish as 'sobr-cli' or '@<user>/sobr'. Keep private:true until that's decided.",
   "private": true,
   "type": "module",
+  "engines": {
+    "bun": ">=1.0.0"
+  },
   "bin": {
     "sobr": "src/cli.ts"
+  },
+  "files": [
+    "src",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "ai",
+    "agent",
+    "coding-agent",
+    "claude",
+    "anthropic",
+    "cli",
+    "bun",
+    "teaching"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lesaathvik24/protos-harness.git",
+    "directory": "sobr"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
     "test": "bun test",
-    "start": "bun run src/cli.ts"
+    "start": "bun run src/cli.ts",
+    "build": "bun build --compile src/cli.ts --outfile dist/sobr",
+    "build:linux-x64": "bun build --compile --target=bun-linux-x64 src/cli.ts --outfile dist/sobr-linux-x64",
+    "build:darwin-arm64": "bun build --compile --target=bun-darwin-arm64 src/cli.ts --outfile dist/sobr-darwin-arm64",
+    "build:darwin-x64": "bun build --compile --target=bun-darwin-x64 src/cli.ts --outfile dist/sobr-darwin-x64",
+    "build:all": "bun run build:linux-x64 && bun run build:darwin-arm64 && bun run build:darwin-x64"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.104.1"

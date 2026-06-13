@@ -30,3 +30,19 @@ export function fmtUsd(usd: number | null): string {
   if (usd === null) return "n/a";
   return usd < 0.01 ? `$${usd.toFixed(4)}` : `$${usd.toFixed(2)}`;
 }
+
+// Context-window sizes (input tokens) for compaction warnings + status %.
+const CONTEXT_WINDOWS: Record<string, number> = {
+  "claude-sonnet-4-6": 1_000_000,
+  "claude-sonnet-4-5": 1_000_000,
+  "claude-opus-4-8": 1_000_000,
+  "claude-opus-4-7": 1_000_000,
+  "claude-opus-4-6": 1_000_000,
+  "claude-fable-5": 1_000_000,
+  "claude-haiku-4-5": 200_000,
+};
+
+/** Best-effort context window; unknown models (incl. openai-provider) fall back to 200K. */
+export function contextWindowFor(model: string): number {
+  return CONTEXT_WINDOWS[model] ?? 200_000;
+}

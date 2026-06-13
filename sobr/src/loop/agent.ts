@@ -4,7 +4,13 @@ import { dispatchToolCall, type DispatchDeps } from "./dispatch.ts";
 import type { SobrConfig } from "../config/config.ts";
 import type { TraceEmitter, TraceEvent } from "../trace/events.ts";
 import { digestOf, sha256Of } from "../trace/events.ts";
-import { costUsd } from "../trace/cost.ts";
+import { costUsd, contextWindowFor } from "../trace/cost.ts";
+
+const COMPACT_SYSTEM =
+  "You are compacting a coding-agent transcript. Produce a dense summary that preserves: the user's " +
+  "goal and constraints, decisions made (and why), files created/edited and their current state, " +
+  "commands run and their outcomes, and any open/next tasks. Be specific about file paths and names. " +
+  "Omit chit-chat. This summary REPLACES the transcript, so anything you drop is lost.";
 
 /** UI-facing events. The renderer is a pure fn over these (replay reuses it in week 2). */
 export type UiEvent =
@@ -34,7 +40,19 @@ export class Agent {
   totalCostUsd = 0;
   /** null once any response came from a model with unknown pricing. */
   costKnown = true;
+  /** Prompt tokens the model saw on the most recent request (input + cache) — drives compaction warnings. */
+  lastPromptTokens = 0;
   private turn = 0;
+
+  /** Seed history when resuming a prior session (sobr resume). */
+  loadHistory(history: Msg[]): void {
+    this.history = history;
+  }
+
+  /** Fraction (0–1) of the model's context window the last prompt used. */
+  contextFraction(): number {
+    return this.lastPromptTokens / contextWindowFor(this.deps.config.model);
+  }
 
   /** Current turn number (teach trace events stamp this). */
   get turnNumber(): number {
@@ -118,6 +136,7 @@ export class Agent {
         costUsd: cost,
       });
       this.tallyUsage(message.usage, cost);
+      this.lastPromptTokens = message.usage.inputTokens + message.usage.cacheReadTokens + message.usage.cacheWriteTokens;
       this.history.push({ role: "assistant", content: message.content });
       this.emit({ type: "assistant_done" });
 
@@ -156,6 +175,50 @@ export class Agent {
       this.history.push({ role: "user", content: results });
     }
     throw new Error(`Turn exceeded ${MAX_ITERATIONS} iterations`);
+  }
+
+  /**
+   * Manual compaction: one summarize call (no tools) that REPLACES history with
+   * a dense summary, so a long session keeps going without blowing the context
+   * window. Logs a `compaction` trace event. Returns the summary text.
+   */
+  async compact(signal?: AbortSignal): Promise<string> {
+    if (this.history.length === 0) return "(nothing to compact)";
+    const beforeMessages = this.history.length;
+    const beforeTokens = this.lastPromptTokens;
+
+    const summarizeMessages: Msg[] = [
+      ...this.history,
+      { role: "user", content: [{ type: "text", text: "Summarize everything above per your instructions. Output only the summary." }] },
+    ];
+    const message = await assemble(
+      this.deps.provider.stream(
+        { model: this.deps.config.model, system: COMPACT_SYSTEM, messages: summarizeMessages, tools: [], maxTokens: this.deps.config.maxTokens },
+        signal,
+      ),
+    );
+    const summary = message.content
+      .filter((b): b is Extract<typeof b, { type: "text" }> => b.type === "text")
+      .map((b) => b.text)
+      .join("")
+      .trim();
+    if (!summary) throw new Error("compaction produced an empty summary");
+
+    const cost = costUsd(message.model || this.deps.config.model, message.usage);
+    this.tallyUsage(message.usage, cost);
+
+    // Replace the transcript with the summary as primed context.
+    this.history = [
+      { role: "user", content: [{ type: "text", text: `[Earlier conversation, compacted]\n${summary}` }] },
+      { role: "assistant", content: [{ type: "text", text: "Understood — I have the summary and will continue from here." }] },
+    ];
+    this.lastPromptTokens = Math.ceil((COMPACT_SYSTEM.length + summary.length) / 4); // rough re-baseline
+
+    this.trace({
+      type: "compaction",
+      payload: { beforeMessages, afterMessages: this.history.length, beforeTokens, summaryChars: summary.length },
+    });
+    return summary;
   }
 
   private onStreamEvent(ev: StreamEvent) {

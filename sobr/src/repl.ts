@@ -19,15 +19,20 @@ import { makeTerminalPrompter, makeTerminalTeachUi } from "./ui/prompt.ts";
 import { SessionStore, newSessionId } from "./session/store.ts";
 import { TraceWriter } from "./trace/writer.ts";
 import { fmtUsd } from "./trace/cost.ts";
+import { historyFromTrace } from "./trace/resume.ts";
 
 const HELP = `slash commands:
   /help                       show this help
   /cost                       show session token usage + cost
+  /compact                    summarize + replace history to reclaim context
   /teach on L1|L2|L3 [hard]   anti-vibecoding coach: fork at every real decision
   /teach off                  back to plain agent
   /teach profile              show the learner model
-  /exit                       quit
-(/compact lands in week 4 — see phases/)`;
+  /exit                       quit`;
+
+// Context-pressure thresholds (fraction of the model's window).
+const WARN_AT = 0.75;
+const WARN_HARD_AT = 0.9;
 
 /** Thrown when the configured API key env var is unset — caught by main() for a clean exit. */
 export class MissingApiKeyError extends Error {}
@@ -100,7 +105,43 @@ export async function buildSession(cwd: string, rl: readline.Interface): Promise
 function costLine(session: Session): string {
   const { agent, config } = session;
   const cost = agent.costKnown ? fmtUsd(agent.totalCostUsd) : `≥${fmtUsd(agent.totalCostUsd)} (some models unpriced)`;
-  return `${renderStatus(config.model, agent.totalUsage)} cost ${cost}`;
+  return `${renderStatus(config.model, agent.totalUsage, agent.lastPromptTokens)} cost ${cost}`;
+}
+
+/** Print a compaction nudge when the context window is filling up. */
+function maybeWarnContext(session: Session): void {
+  const frac = session.agent.contextFraction();
+  if (frac >= WARN_HARD_AT) {
+    console.log(`\x1b[31m⚠ context ~${Math.round(frac * 100)}% full — run /compact soon to avoid hitting the limit.\x1b[0m`);
+  } else if (frac >= WARN_AT) {
+    console.log(`\x1b[33m⚠ context ~${Math.round(frac * 100)}% full — consider /compact.\x1b[0m`);
+  }
+}
+
+async function doCompact(session: Session): Promise<void> {
+  process.stdout.write("compacting…\n");
+  try {
+    const summary = await session.agent.compact();
+    console.log(`\x1b[2m✓ compacted — history replaced with a ${summary.length}-char summary.\x1b[0m`);
+  } catch (e) {
+    console.error(`\x1b[31mcompaction failed: ${(e as Error).message}\x1b[0m`);
+  }
+}
+
+export async function runResume(cwd: string, priorId: string): Promise<void> {
+  const store = new SessionStore();
+  const id = await store.resolve(priorId);
+  const history = historyFromTrace(await store.trace(id));
+  if (history.length === 0) {
+    console.error(`session ${id} has nothing to resume (no completed requests).`);
+    process.exit(1);
+  }
+  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+  const session = await buildSession(cwd, rl);
+  session.agent.loadHistory(history);
+  console.log(`sobr — resumed from ${id} (${history.length} messages). ${session.config.model} · ${cwd}`);
+  console.log(`new session ${session.sessionId} · /help for commands\n`);
+  await replLoop(session, rl);
 }
 
 export async function runRepl(cwd: string): Promise<void> {
@@ -109,7 +150,10 @@ export async function runRepl(cwd: string): Promise<void> {
   console.log(`sobr — sober coding, no vibes. ${session.config.model} · ${cwd}`);
   console.log(`session ${session.sessionId} (sobr replay ${session.sessionId} later) · /help for commands\n`);
   for (const warning of gitStatusAdvisory(cwd)) console.log(`\x1b[33m${warning}\x1b[0m`);
+  await replLoop(session, rl);
+}
 
+async function replLoop(session: Session, rl: readline.Interface): Promise<void> {
   for (;;) {
     const line = (await rl.question("sobr> ")).trim();
     if (!line) continue;
@@ -120,6 +164,10 @@ export async function runRepl(cwd: string): Promise<void> {
     }
     if (line === "/cost") {
       console.log(costLine(session));
+      continue;
+    }
+    if (line === "/compact") {
+      await doCompact(session);
       continue;
     }
     if (line === "/teach" || line.startsWith("/teach ")) {
@@ -133,6 +181,7 @@ export async function runRepl(cwd: string): Promise<void> {
     try {
       await session.agent.runTurn(line);
       console.log(costLine(session));
+      maybeWarnContext(session);
     } catch (e) {
       console.error(`\x1b[31merror: ${(e as Error).message}\x1b[0m`);
     }
